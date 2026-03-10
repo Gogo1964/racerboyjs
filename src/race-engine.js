@@ -122,6 +122,12 @@ class RaceEngine extends EventEmitter {
     });
     
     this.state.status = 'starting';
+    
+    // Turn ON power for all lanes so they can false-start during the countdown!
+    this.hardware.lanes.forEach(l => {
+        this.hardware.setLanePower(l.id, true);
+    });
+    
     this.emitStateChanged();
 
     // Start light sequence mimic
@@ -159,6 +165,12 @@ class RaceEngine extends EventEmitter {
   resumeRace() {
     if (this.state.status !== 'paused') return;
     this.state.status = 'starting'; // Go back to countdown
+    
+    // Restore power so cars can false start during the resume countdown
+    this.hardware.lanes.forEach(l => {
+        this.hardware.setLanePower(l.id, true);
+    });
+    
     this.emitStateChanged();
     
     this.startLightSequence()
@@ -273,6 +285,9 @@ class RaceEngine extends EventEmitter {
 
   completeHeat() {
     this.stopTicker();
+    
+    // Safety guarantee: Ensure power is explicitly cut for ALL lanes now that the heat is fully over
+    this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, false));
     
     this.state.currentHeat++;
     if (this.state.currentHeat > this.state.totalHeats) {
