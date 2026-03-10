@@ -76,6 +76,13 @@ class RaceEngine extends EventEmitter {
     }
     this.state.mode = mode;
     this.initLanes();
+    
+    if (mode === 'training') {
+      this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, true));
+    } else {
+      this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, false));
+    }
+    
     this.emitStateChanged();
   }
 
