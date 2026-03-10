@@ -28,6 +28,11 @@ class RaceEngine extends EventEmitter {
     // Ticker for countdowns
     this.ticker = null;
     this.lastTickTime = null;
+    
+    // Apply initial hardware state based on boot mode
+    if (this.state.mode === 'training') {
+      this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, true));
+    }
   }
 
   applyConfig(newConfig) {
