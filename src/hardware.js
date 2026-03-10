@@ -28,7 +28,7 @@ class Hardware extends EventEmitter {
     this.lanes.forEach(lane => {
       const laneConfig = config[`lane${lane.id}`];
       if (laneConfig && laneConfig.pins) {
-        if (laneConfig.pins.sens!== undefined) lane.sensorPin = parseInt(laneConfig.pins.sensor, 10);
+        if (laneConfig.pins.sensor !== undefined) lane.sensorPin = parseInt(laneConfig.pins.sensor, 10);
         if (laneConfig.pins.power_fwd !== undefined) lane.powerFwdPin = parseInt(laneConfig.pins.power_fwd, 10);
         if (laneConfig.pins.power_bwd !== undefined) lane.powerBwdPin = parseInt(laneConfig.pins.power_bwd, 10);
         if (laneConfig.pins.pwm !== undefined) lane.pwmPin = parseInt(laneConfig.pins.pwm, 10);

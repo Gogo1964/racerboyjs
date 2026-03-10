@@ -12,8 +12,8 @@
     "color": "green",
     "pins": {
       "sensor": 17,
-      "power_fwd": 24,
-      "power_bwd": 23
+      "power_fwd": 27,
+      "power_bwd": 22
     }
   },
   "lane2": {
@@ -22,8 +22,8 @@
     "color": "blue",
     "pins": {
       "sensor": 18,
-      "power_fwd": 27,
-      "power_bwd": 22
+      "power_fwd": 24,
+      "power_bwd": 23
     }
   }
 }

@@ -54,6 +54,16 @@ module.exports = function setupAPI(app) {
         case 'setGlobalPower':
           raceEngine.setGlobalPower(payload.power);
           break;
+        case 'toggleLanePower':
+          {
+             const lane = raceEngine.state.lanes[payload.laneId];
+             if (lane) {
+                 const newPower = !lane.isPowerOn;
+                 raceEngine.hardware.setLanePower(payload.laneId, newPower);
+                 raceEngine.emitStateChanged();
+             }
+          }
+          break;
         default:
           return res.status(400).json({ error: 'Unknown action' });
       }

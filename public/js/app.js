@@ -140,10 +140,18 @@ document.addEventListener('keydown', (e) => {
             }
             break;
         case '1':
-            window.app.apiCommand('mockLap', { laneId: 1 });
+            if (e.ctrlKey && e.shiftKey) {
+                window.app.apiCommand('toggleLanePower', { laneId: 1 });
+            } else {
+                window.app.apiCommand('mockLap', { laneId: 1 });
+            }
             break;
         case '2':
-            window.app.apiCommand('mockLap', { laneId: 2 });
+            if (e.ctrlKey && e.shiftKey) {
+                window.app.apiCommand('toggleLanePower', { laneId: 2 });
+            } else {
+                window.app.apiCommand('mockLap', { laneId: 2 });
+            }
             break;
     }
 });
