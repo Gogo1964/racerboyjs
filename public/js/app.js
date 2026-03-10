@@ -115,6 +115,19 @@ window.app.init();
 document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
+    if (e.ctrlKey && e.shiftKey) {
+        if (e.code === 'Digit1') {
+            e.preventDefault();
+            window.app.apiCommand('toggleLanePower', { laneId: 1 });
+            return;
+        }
+        if (e.code === 'Digit2') {
+            e.preventDefault();
+            window.app.apiCommand('toggleLanePower', { laneId: 2 });
+            return;
+        }
+    }
+
     switch(e.key.toLowerCase()) {
         case ' ':
             e.preventDefault();
@@ -140,18 +153,10 @@ document.addEventListener('keydown', (e) => {
             }
             break;
         case '1':
-            if (e.ctrlKey && e.shiftKey) {
-                window.app.apiCommand('toggleLanePower', { laneId: 1 });
-            } else {
-                window.app.apiCommand('mockLap', { laneId: 1 });
-            }
+            window.app.apiCommand('mockLap', { laneId: 1 });
             break;
         case '2':
-            if (e.ctrlKey && e.shiftKey) {
-                window.app.apiCommand('toggleLanePower', { laneId: 2 });
-            } else {
-                window.app.apiCommand('mockLap', { laneId: 2 });
-            }
+            window.app.apiCommand('mockLap', { laneId: 2 });
             break;
     }
 });
