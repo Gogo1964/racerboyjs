@@ -59,7 +59,15 @@ class ConfigManager {
   }
 
   update(newConfig) {
-    this.config = Object.assign({}, this.config, newConfig);
+    if (!newConfig) return;
+    for (const key of Object.keys(newConfig)) {
+      if (typeof newConfig[key] === 'object' && newConfig[key] !== null && !Array.isArray(newConfig[key])) {
+        // Deep merge objects like lane1, lane2 to preserve hidden nested keys like `pins`
+        this.config[key] = Object.assign({}, this.config[key] || {}, newConfig[key]);
+      } else {
+        this.config[key] = newConfig[key];
+      }
+    }
     this.save();
   }
 }
