@@ -72,7 +72,19 @@ class RaceEngine extends EventEmitter {
   }
 
   emitStateChanged() {
+    // Sync hardware electrical state to frontend state before emission
+    Object.values(this.state.lanes).forEach(lane => {
+        const hwLane = this.hardware.lanes.find(l => l.id === lane.hwId);
+        if (hwLane) {
+            lane.isPowerOn = hwLane.isPowerOn;
+        }
+    });
     this.emit('stateChanged');
+  }
+  
+  setGlobalPower(isOn) {
+    this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, isOn));
+    this.emitStateChanged();
   }
 
   setMode(mode) {

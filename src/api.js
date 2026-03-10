@@ -51,6 +51,9 @@ module.exports = function setupAPI(app) {
           // used for testing on Mac
           raceEngine.hardware.mockLapTrigger(payload.laneId);
           break;
+        case 'setGlobalPower':
+          raceEngine.setGlobalPower(payload.power);
+          break;
         default:
           return res.status(400).json({ error: 'Unknown action' });
       }
