@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help - Racerboy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .kbd {
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 0.2rem 0.6rem;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="theme-help">
+    <nav>
+        <a href="/training.html">Training</a>
+        <a href="/race.html">Race</a>
+        <a href="/config.html">Config</a>
+        <a href="/help.html" class="active">Help</a>
+    </nav>
+    
+    <div class="container" style="max-width: 600px;">
+        <div class="card">
+            <h1>Keyboard Shortcuts</h1>
+            <p style="margin-bottom: 2rem;">Use these shortcuts from any race page.</p>
+            
+            <div class="shortcut">
+                <span>Start Race</span>
+                <span class="kbd">Space</span>
+            </div>
+            <div class="shortcut">
+                <span>Stop/Abort Race</span>
+                <span class="kbd">Esc</span>
+            </div>
+            <div class="shortcut">
+                <span>Reset Laps</span>
+                <span class="kbd">R</span>
+            </div>
+            <div class="shortcut">
+                <span>Switch to Training Mode</span>
+                <span class="kbd">T</span>
+            </div>
+            <div class="shortcut">
+                <span>Switch to Race Mode</span>
+                <span class="kbd">M</span>
+            </div>
+
+            <div style="margin-top: 3rem;">
+                <h2>Debug Shortcuts (Mac)</h2>
+                <div class="shortcut">
+                    <span>Simulate Lane 1 Lap</span>
+                    <span class="kbd">1</span>
+                </div>
+                <div class="shortcut">
+                    <span>Simulate Lane 2 Lap</span>
+                    <span class="kbd">2</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('keydown', (e) => {
+            // Ignore if typing in an input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+            switch(e.key.toLowerCase()) {
+                case ' ':
+                    e.preventDefault();
+                    app.apiCommand('startRace');
+                    break;
+                case 'escape':
+                    app.apiCommand('stopRace');
+                    break;
+                case 'r':
+                    app.apiCommand('resetLaps');
+                    break;
+                case 't':
+                    window.location.href = '/training.html';
+                    break;
+                case 'm':
+                    window.location.href = '/race.html';
+                    break;
+                case '1':
+                    app.apiCommand('mockLap', { laneId: 1 });
+                    break;
+                case '2':
+                    app.apiCommand('mockLap', { laneId: 2 });
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

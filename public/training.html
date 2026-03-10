@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Training Mode - Racerboy</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
+
+    <body class="theme-training">
+        <nav>
+            <a href="/training.html" class="active">Training</a>
+            <a href="/race.html">Race</a>
+            <a href="/config.html">Config</a>
+            <a href="/help.html">Help</a>
+        </nav>
+
+        <div class="container">
+            <div class="header-banner"
+                style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin-bottom: 2rem;">
+                <h1 style="margin-bottom: 0;">Free Training</h1>
+                <button onclick="app.apiCommand('resetLaps')" style="padding: 0.5rem 1.5rem; font-size: 0.9rem;">Reset
+                    Laps</button>
+            </div>
+
+            <div class="grid-2" id="lanes-container">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Template for Lane -->
+        <template id="lane-template">
+            <div class="card lane-card">
+                <h2 class="lane-name"></h2>
+
+                <div style="display: flex; gap: 2rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="stat-group" style="margin-bottom: 0;">
+                        <div class="stat-label">Total Laps</div>
+                        <div class="stat-value huge mono lane-laps">0</div>
+                    </div>
+
+                    <div class="stat-group" style="margin-bottom: 0;">
+                        <div class="stat-label">Last Lap</div>
+                        <div class="stat-value mono lane-last-lap pb" style="font-size: 2.5rem;">0.000</div>
+                    </div>
+
+                    <div class="stat-group" style="margin-bottom: 0;">
+                        <div class="stat-label">Average Lap</div>
+                        <div class="stat-value mono lane-avg-lap" style="font-size: 2.5rem;">0.000</div>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top: 2rem; gap: 2rem;">
+                    <div>
+                        <div class="stat-label">Last 10 Laps</div>
+                        <ul class="lap-history"></ul>
+                    </div>
+                    <div>
+                        <div class="stat-label">Top 10 Best Laps</div>
+                        <ul class="lap-history best-lap-history"></ul>
+                    </div>
+                </div>
+
+                <!-- Debug only -->
+                <button class="debug-btn" style="margin-top: 1rem; font-size: 0.8rem; padding: 0.5rem;"
+                    onclick="">Simulate
+                    Lap (Mac)</button>
+            </div>
+        </template>
+
+        <script src="/js/app.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                app.apiCommand('setMode', { mode: 'training' });
+
+                app.onStateUpdate((state) => {
+                    if (!state || !state.lanes) return;
+
+                    const container = document.getElementById('lanes-container');
+                    const tpl = document.getElementById('lane-template');
+
+                    Object.values(state.lanes).forEach(lane => {
+                        let card = document.getElementById(`lane-${lane.hwId}`);
+                        if (!card) {
+                            const clone = tpl.content.cloneNode(true);
+                            card = clone.querySelector('.lane-card');
+                            card.id = `lane-${lane.hwId}`;
+                            container.appendChild(clone);
+
+                            card.querySelector('.debug-btn').onclick = () => {
+                                app.apiCommand('mockLap', { laneId: lane.hwId });
+                            };
+                        }
+
+                        // Update content
+                        card.setAttribute('data-color', lane.color);
+                        card.querySelector('.lane-name').textContent = lane.name || `Lane ${lane.hwId}`;
+                        card.querySelector('.lane-laps').textContent = lane.laps;
+
+                        const lastLapEl = card.querySelector('.lane-last-lap');
+                        lastLapEl.id = `lane-${lane.hwId}-last-lap`;
+                        lastLapEl.textContent = app.formatMs(lane.lastLapTimeMs);
+
+                        card.querySelector('.lane-avg-lap').textContent = app.formatMs(lane.averageLapTimeMs);
+
+                        // History
+                        const ul = card.querySelector('.lap-history');
+                        ul.innerHTML = '';
+                        [...lane.history].reverse().forEach((ms, idx) => {
+                            const li = document.createElement('li');
+
+                            const timeSpan = document.createElement('span');
+                            timeSpan.textContent = app.formatMs(ms);
+                            li.appendChild(timeSpan);
+
+                            // mark PB visually if it matches bestLapTimeMs
+                            if (ms > 0 && ms <= lane.bestLapTimeMs) {
+                                li.classList.add('pb');
+                                const pbSpan = document.createElement('span');
+                                pbSpan.textContent = '★ PB';
+                                li.appendChild(pbSpan);
+                            }
+                            ul.appendChild(li);
+                        });
+
+                        // Best Laps
+                        const bestUl = card.querySelector('.best-lap-history');
+                        bestUl.innerHTML = '';
+                        if (lane.bestLaps) {
+                            lane.bestLaps.forEach((bestLap, idx) => {
+                                const li = document.createElement('li');
+
+                                const timeSpan = document.createElement('span');
+                                timeSpan.textContent = app.formatMs(bestLap.timeMs);
+                                li.appendChild(timeSpan);
+
+                                const lapSpan = document.createElement('span');
+                                let lapContent = `(Lap ${bestLap.lap})`;
+                                if (idx === 0) {
+                                    li.classList.add('pb');
+                                    lapContent += '  ★ PB';
+                                }
+                                lapSpan.textContent = lapContent;
+                                lapSpan.style.opacity = '0.5';
+                                lapSpan.style.fontSize = '0.85em';
+                                if (idx === 0) lapSpan.style.opacity = '1';
+                                li.appendChild(lapSpan);
+
+                                bestUl.appendChild(li);
+                            });
+                        }
+                    });
+                });
+            });
+        </script>
+    </body>
+
+    </html>

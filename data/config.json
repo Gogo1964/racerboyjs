@@ -1,0 +1,19 @@
+{
+  "maxLapTimeMs": 60000,
+  "minLapTimeMs": 1000,
+  "heats": 4,
+  "heatDurationSec": 10,
+  "penaltyDurationSec": 2,
+  "trackLengthMeters": 25.5,
+  "distanceCalculationMode": "average",
+  "lane1": {
+    "name": "Driver 1",
+    "powerLevel": 100,
+    "color": "green"
+  },
+  "lane2": {
+    "name": "Driver 2",
+    "powerLevel": 100,
+    "color": "blue"
+  }
+}

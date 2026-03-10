@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - Racerboy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .config-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="theme-config">
+    <nav>
+        <a href="/training.html">Training</a>
+        <a href="/race.html">Race</a>
+        <a href="/config.html" class="active">Config</a>
+        <a href="/help.html">Help</a>
+    </nav>
+    
+    <div class="container" style="max-width: 800px;">
+        <div class="card">
+            <h1>Settings</h1>
+            
+            <form id="config-form">
+                
+                <div class="config-section">
+                    <h2>Race Settings</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Number of Heats</label>
+                            <input type="number" id="heats" name="heats" min="1" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Heat Duration (Seconds)</label>
+                            <input type="number" id="heatDurationSec" name="heatDurationSec" min="10">
+                        </div>
+                        <div class="form-group">
+                            <label>False Start Penalty (Seconds)</label>
+                            <input type="number" id="penaltyDurationSec" name="penaltyDurationSec" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h2>Track & Hardware</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Track Length (Meters)</label>
+                            <input type="number" step="0.1" id="trackLengthMeters" name="trackLengthMeters">
+                        </div>
+                        <div class="form-group">
+                            <label>Distance Calculation Mode</label>
+                            <select id="distanceCalculationMode" name="distanceCalculationMode">
+                                <option value="average">Based on Average Lap</option>
+                                <option value="last-lap">Based on Last Lap</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Minimum Lap Time (ms)</label>
+                            <input type="number" id="minLapTimeMs" name="minLapTimeMs" title="Sensor jitter filter">
+                        </div>
+                        <div class="form-group">
+                            <label>Maximum Lap Time (ms)</label>
+                            <input type="number" id="maxLapTimeMs" name="maxLapTimeMs" title="Slowest valid lap">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h2>Lanes</h2>
+                    
+                    <div class="grid-2" style="margin-bottom: 1rem;">
+                        <div>
+                            <h4>Lane 1</h4>
+                            <div class="form-group">
+                                <label>Driver Name</label>
+                                <input type="text" id="lane1-name">
+                            </div>
+                            <div class="form-group">
+                                <label>Power Level (%)</label>
+                                <input type="number" id="lane1-power" min="0" max="100">
+                            </div>
+                        </div>
+                        <div>
+                            <h4>Lane 2</h4>
+                            <div class="form-group">
+                                <label>Driver Name</label>
+                                <input type="text" id="lane2-name">
+                            </div>
+                            <div class="form-group">
+                                <label>Power Level (%)</label>
+                                <input type="number" id="lane2-power" min="0" max="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" style="width: 100%;">Save Configuration</button>
+            </form>
+            
+            <div id="save-msg" style="display: none; color: green; margin-top: 1rem; text-align: center; font-weight: bold;">Saved via API!</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/config')
+                .then(res => res.json())
+                .then(cfg => {
+                    document.getElementById('heats').value = cfg.heats || 4;
+                    document.getElementById('heatDurationSec').value = cfg.heatDurationSec || 180;
+                    document.getElementById('penaltyDurationSec').value = cfg.penaltyDurationSec || 3;
+                    document.getElementById('trackLengthMeters').value = cfg.trackLengthMeters || 25.5;
+                    document.getElementById('distanceCalculationMode').value = cfg.distanceCalculationMode || 'average';
+                    document.getElementById('minLapTimeMs').value = cfg.minLapTimeMs || 1000;
+                    document.getElementById('maxLapTimeMs').value = cfg.maxLapTimeMs || 60000;
+                    
+                    if (cfg.lane1) {
+                        document.getElementById('lane1-name').value = cfg.lane1.name || '';
+                        document.getElementById('lane1-power').value = cfg.lane1.powerLevel || 100;
+                    }
+                    if (cfg.lane2) {
+                        document.getElementById('lane2-name').value = cfg.lane2.name || '';
+                        document.getElementById('lane2-power').value = cfg.lane2.powerLevel || 100;
+                    }
+                });
+                
+            document.getElementById('config-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const newCfg = {
+                    heats: parseInt(document.getElementById('heats').value, 10),
+                    heatDurationSec: parseInt(document.getElementById('heatDurationSec').value, 10),
+                    penaltyDurationSec: parseInt(document.getElementById('penaltyDurationSec').value, 10),
+                    trackLengthMeters: parseFloat(document.getElementById('trackLengthMeters').value),
+                    distanceCalculationMode: document.getElementById('distanceCalculationMode').value,
+                    minLapTimeMs: parseInt(document.getElementById('minLapTimeMs').value, 10),
+                    maxLapTimeMs: parseInt(document.getElementById('maxLapTimeMs').value, 10),
+                    lane1: {
+                        name: document.getElementById('lane1-name').value,
+                        powerLevel: parseInt(document.getElementById('lane1-power').value, 10),
+                        color: "green"
+                    },
+                    lane2: {
+                        name: document.getElementById('lane2-name').value,
+                        powerLevel: parseInt(document.getElementById('lane2-power').value, 10),
+                        color: "blue"
+                    }
+                };
+                
+                fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newCfg)
+                }).then(res => res.json())
+                  .then(data => {
+                      if (data.success) {
+                          const msg = document.getElementById('save-msg');
+                          msg.style.display = 'block';
+                          setTimeout(() => { msg.style.display = 'none'; }, 2000);
+                      }
+                  });
+            });
+        });
+    </script>
+</body>
+</html>
