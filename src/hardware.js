@@ -17,7 +17,7 @@ try {
 class Hardware extends EventEmitter {
   constructor() {
     super();
-    const config = configManager.getConfig();
+    const config = configManager.get();
 
     this.lanes = [
       { id: 1, sensorPin: 17, powerPin: 27, pwmPin: 22, isPowerOn: false, speedLevel: 0 },
