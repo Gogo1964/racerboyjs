@@ -12,8 +12,7 @@
     "color": "green",
     "pins": {
       "sensor": 17,
-      "power": 24,
-      "pwm": 22
+      "power": 24
     }
   },
   "lane2": {
@@ -22,8 +21,7 @@
     "color": "blue",
     "pins": {
       "sensor": 18,
-      "power": 27,
-      "pwm": 25
+      "power": 27
     }
   }
 }

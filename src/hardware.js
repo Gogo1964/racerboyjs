@@ -20,22 +20,22 @@ class Hardware extends EventEmitter {
     const config = configManager.get();
 
     this.lanes = [
-      { id: 1, sensorPin: 17, powerPin: 27, pwmPin: 22, isPowerOn: false, speedLevel: 0 },
-      { id: 2, sensorPin: 23, powerPin: 24, pwmPin: 25, isPowerOn: false, speedLevel: 0 }
+      { id: 1, sensorPin: 17, powerPin: 24, isPowerOn: false, speedLevel: 0 },
+      { id: 2, sensorPin: 18, powerPin: 27, isPowerOn: false, speedLevel: 0 }
     ];
-    
+
     // Override from config.json if defined
     this.lanes.forEach(lane => {
       const laneConfig = config[`lane${lane.id}`];
       if (laneConfig && laneConfig.pins) {
-        if (laneConfig.pins.sensor !== undefined) lane.sensorPin = laneConfig.pins.sensor;
-        if (laneConfig.pins.power !== undefined) lane.powerPin = laneConfig.pins.power;
-        if (laneConfig.pins.pwm !== undefined) lane.pwmPin = laneConfig.pins.pwm;
+        if (laneConfig.pins.sensor !== undefined) lane.sensorPin = parseInt(laneConfig.pins.sensor, 10);
+        if (laneConfig.pins.power !== undefined) lane.powerPin = parseInt(laneConfig.pins.power, 10);
+        if (laneConfig.pins.pwm !== undefined) lane.pwmPin = parseInt(laneConfig.pins.pwm, 10);
       }
     });
 
     this.buzzerPin = config.buzzerPin || 5;
-    
+
     // Initialize actual hardware if available
     this.hardwareState = {};
     if (pigpioEnabled) {
@@ -45,7 +45,7 @@ class Hardware extends EventEmitter {
 
   initHardware() {
     // Buzzer initialization
-    this.hardwareState.buzzer = new Gpio(this.buzzerPin, {mode: Gpio.OUTPUT});
+    this.hardwareState.buzzer = new Gpio(this.buzzerPin, { mode: Gpio.OUTPUT });
     this.hardwareState.buzzer.digitalWrite(0);
 
     // Lane initialization
@@ -57,7 +57,7 @@ class Hardware extends EventEmitter {
         pullUpDown: Gpio.PUD_UP,
         edge: Gpio.FALLING_EDGE
       });
-      
+
       // Hardware interrupt callback
       sensor.on('interrupt', (level, tick) => {
         // debounce/jitter will be handled in race logic, just emit raw event here
@@ -65,12 +65,15 @@ class Hardware extends EventEmitter {
       });
 
       // Power relay/switch
-      const power = new Gpio(lane.powerPin, {mode: Gpio.OUTPUT});
+      const power = new Gpio(lane.powerPin, { mode: Gpio.OUTPUT });
       power.digitalWrite(0);
 
-      // PWM for speed
-      const pwm = new Gpio(lane.pwmPin, {mode: Gpio.OUTPUT});
-      pwm.pwmWrite(0);
+      // PWM for speed (Optional)
+      let pwm = null;
+      if (lane.pwmPin) {
+        pwm = new Gpio(lane.pwmPin, { mode: Gpio.OUTPUT });
+        pwm.pwmWrite(0);
+      }
 
       this.hardwareState.lanes[lane.id] = { sensor, power, pwm };
     });
@@ -94,15 +97,17 @@ class Hardware extends EventEmitter {
     // speedPercent 0-100
     const lane = this.lanes.find(l => l.id === laneId);
     if (!lane) return;
-    
+
     // clamp between 0 and 100
     speedPercent = Math.max(0, Math.min(100, speedPercent));
     lane.speedLevel = speedPercent;
 
     if (pigpioEnabled && this.hardwareState.lanes[laneId]) {
-      // mapped to 0-255 for pwmWrite
-      const dutyCycle = Math.floor((speedPercent / 100) * 255);
-      this.hardwareState.lanes[laneId].pwm.pwmWrite(dutyCycle);
+      if (this.hardwareState.lanes[laneId].pwm) {
+        // mapped to 0-255 for pwmWrite
+        const dutyCycle = Math.floor((speedPercent / 100) * 255);
+        this.hardwareState.lanes[laneId].pwm.pwmWrite(dutyCycle);
+      }
     } else {
       console.log(`[MOCK] Lane ${laneId} PWM Speed -> ${speedPercent}%`);
     }
