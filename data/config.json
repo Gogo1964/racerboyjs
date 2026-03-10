@@ -9,11 +9,21 @@
   "lane1": {
     "name": "Driver 1",
     "powerLevel": 100,
-    "color": "green"
+    "color": "green",
+    "pins": {
+      "sensor": 17,
+      "power": 24,
+      "pwm": 22
+    }
   },
   "lane2": {
     "name": "Driver 2",
     "powerLevel": 100,
-    "color": "blue"
+    "color": "blue",
+    "pins": {
+      "sensor": 18,
+      "power": 27,
+      "pwm": 25
+    }
   }
 }

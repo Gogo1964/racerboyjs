@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const configManager = require('./configManager');
 
 // Optional pigpio require. Will fail gracefully on MacOS
 let Gpio;
@@ -16,11 +17,24 @@ try {
 class Hardware extends EventEmitter {
   constructor() {
     super();
+    const config = configManager.getConfig();
+
     this.lanes = [
       { id: 1, sensorPin: 17, powerPin: 27, pwmPin: 22, isPowerOn: false, speedLevel: 0 },
       { id: 2, sensorPin: 23, powerPin: 24, pwmPin: 25, isPowerOn: false, speedLevel: 0 }
     ];
-    this.buzzerPin = 5;
+    
+    // Override from config.json if defined
+    this.lanes.forEach(lane => {
+      const laneConfig = config[`lane${lane.id}`];
+      if (laneConfig && laneConfig.pins) {
+        if (laneConfig.pins.sensor !== undefined) lane.sensorPin = laneConfig.pins.sensor;
+        if (laneConfig.pins.power !== undefined) lane.powerPin = laneConfig.pins.power;
+        if (laneConfig.pins.pwm !== undefined) lane.pwmPin = laneConfig.pins.pwm;
+      }
+    });
+
+    this.buzzerPin = config.buzzerPin || 5;
     
     // Initialize actual hardware if available
     this.hardwareState = {};
