@@ -20,16 +20,17 @@ class Hardware extends EventEmitter {
     const config = configManager.get();
 
     this.lanes = [
-      { id: 1, sensorPin: 17, powerPin: 24, isPowerOn: false, speedLevel: 0 },
-      { id: 2, sensorPin: 18, powerPin: 27, isPowerOn: false, speedLevel: 0 }
+      { id: 1, sensorPin: 17, powerFwdPin: 24, powerBwdPin: 23, isPowerOn: false, speedLevel: 0 },
+      { id: 2, sensorPin: 18, powerFwdPin: 27, powerBwdPin: 22, isPowerOn: false, speedLevel: 0 }
     ];
 
     // Override from config.json if defined
     this.lanes.forEach(lane => {
       const laneConfig = config[`lane${lane.id}`];
       if (laneConfig && laneConfig.pins) {
-        if (laneConfig.pins.sensor !== undefined) lane.sensorPin = parseInt(laneConfig.pins.sensor, 10);
-        if (laneConfig.pins.power !== undefined) lane.powerPin = parseInt(laneConfig.pins.power, 10);
+        if (laneConfig.pins.sens!== undefined) lane.sensorPin = parseInt(laneConfig.pins.sensor, 10);
+        if (laneConfig.pins.power_fwd !== undefined) lane.powerFwdPin = parseInt(laneConfig.pins.power_fwd, 10);
+        if (laneConfig.pins.power_bwd !== undefined) lane.powerBwdPin = parseInt(laneConfig.pins.power_bwd, 10);
         if (laneConfig.pins.pwm !== undefined) lane.pwmPin = parseInt(laneConfig.pins.pwm, 10);
       }
     });
@@ -64,9 +65,19 @@ class Hardware extends EventEmitter {
         this.emit('lapSensorTriggered', { laneId: lane.id, tick });
       });
 
-      // Power relay/switch
-      const power = new Gpio(lane.powerPin, { mode: Gpio.OUTPUT });
-      power.digitalWrite(0);
+      // Forward Power Relay
+      let powerFwd = null;
+      if (lane.powerFwdPin) {
+          powerFwd = new Gpio(lane.powerFwdPin, { mode: Gpio.OUTPUT });
+          powerFwd.digitalWrite(0);
+      }
+
+      // Backward Power Relay
+      let powerBwd = null;
+      if (lane.powerBwdPin) {
+          powerBwd = new Gpio(lane.powerBwdPin, { mode: Gpio.OUTPUT });
+          powerBwd.digitalWrite(0);
+      }
 
       // PWM for speed (Optional)
       let pwm = null;
@@ -75,7 +86,7 @@ class Hardware extends EventEmitter {
         pwm.pwmWrite(0);
       }
 
-      this.hardwareState.lanes[lane.id] = { sensor, power, pwm };
+      this.hardwareState.lanes[lane.id] = { sensor, powerFwd, powerBwd, pwm };
     });
   }
 
@@ -87,7 +98,16 @@ class Hardware extends EventEmitter {
     lane.isPowerOn = isOn;
 
     if (pigpioEnabled && this.hardwareState.lanes[laneId]) {
-      this.hardwareState.lanes[laneId].power.digitalWrite(isOn ? 1 : 0);
+      const state = this.hardwareState.lanes[laneId];
+      if (isOn) {
+         // Power ON = FWD on, BWD off
+         if (state.powerFwd) state.powerFwd.digitalWrite(1);
+         if (state.powerBwd) state.powerBwd.digitalWrite(0);
+      } else {
+         // Power OFF = FWD off, BWD off
+         if (state.powerFwd) state.powerFwd.digitalWrite(0);
+         if (state.powerBwd) state.powerBwd.digitalWrite(0);
+      }
     } else {
       console.log(`[MOCK] Lane ${laneId} Power -> ${isOn ? 'ON' : 'OFF'}`);
     }
