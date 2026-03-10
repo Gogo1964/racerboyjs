@@ -36,7 +36,8 @@
 
         <!-- Template for Lane -->
         <template id="lane-template">
-            <div class="card lane-card">
+            <div class="card lane-card" style="position: relative;">
+                <div class="power-indicator" style="display: none; position: absolute; top: 1.5rem; right: 2rem; width: 14px; height: 14px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444;" title="Power ON"></div>
                 <h2 class="lane-name"></h2>
 
                 <div style="display: flex; gap: 2rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem;">
@@ -102,6 +103,12 @@
                         card.setAttribute('data-color', lane.color);
                         card.querySelector('.lane-name').textContent = lane.name || `Lane ${lane.hwId}`;
                         card.querySelector('.lane-laps').textContent = lane.laps;
+                        
+                        // Power Indicator
+                        const powerDot = card.querySelector('.power-indicator');
+                        if (powerDot) {
+                            powerDot.style.display = lane.isPowerOn ? 'block' : 'none';
+                        }
 
                         const lastLapEl = card.querySelector('.lane-last-lap');
                         lastLapEl.id = `lane-${lane.hwId}-last-lap`;

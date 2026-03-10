@@ -51,6 +51,8 @@
     <!-- Template for Lane -->
     <template id="lane-template">
         <div class="card lane-card" style="position: relative;">
+            <div class="power-indicator" style="display: none; position: absolute; top: 1.5rem; right: 2rem; width: 14px; height: 14px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444;" title="Power ON"></div>
+            
             <div class="penalty-overlay" style="display: none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(255,0,0,0.8); color: white; border-radius: var(--radius-lg); z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">
                 PENALTY (False Start)
             </div>
@@ -185,6 +187,12 @@
                     // Update content
                     card.setAttribute('data-color', lane.color);
                     card.querySelector('.lane-name').textContent = lane.name || `Lane ${lane.hwId}`;
+                    
+                    // Power Indicator
+                    const powerDot = card.querySelector('.power-indicator');
+                    if (powerDot) {
+                        powerDot.style.display = lane.isPowerOn ? 'block' : 'none';
+                    }
                     
                     // Include estimated distance
                     const totalLaps = lane.laps + (lane.distanceEst || 0);

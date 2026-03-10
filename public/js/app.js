@@ -132,6 +132,13 @@ document.addEventListener('keydown', (e) => {
         case 'm':
             window.location.href = '/race.html';
             break;
+        case 'p':
+            if (e.shiftKey) {
+                window.app.apiCommand('setGlobalPower', { power: true });
+            } else {
+                window.app.apiCommand('setGlobalPower', { power: false });
+            }
+            break;
         case '1':
             window.app.apiCommand('mockLap', { laneId: 1 });
             break;
