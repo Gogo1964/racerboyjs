@@ -128,6 +128,32 @@ document.addEventListener('keydown', (e) => {
         }
     }
 
+    if (e.ctrlKey && !e.shiftKey) {
+        if (e.code === 'Digit1') {
+            e.preventDefault();
+            window.app.apiCommand('adjustLap', { laneId: 1, delta: -1 });
+            return;
+        }
+        if (e.code === 'Digit2') {
+            e.preventDefault();
+            window.app.apiCommand('adjustLap', { laneId: 2, delta: -1 });
+            return;
+        }
+    }
+
+    if (e.shiftKey && !e.ctrlKey) {
+        if (e.code === 'Digit1') {
+            e.preventDefault();
+            window.app.apiCommand('adjustLap', { laneId: 1, delta: 1 });
+            return;
+        }
+        if (e.code === 'Digit2') {
+            e.preventDefault();
+            window.app.apiCommand('adjustLap', { laneId: 2, delta: 1 });
+            return;
+        }
+    }
+
     switch(e.key.toLowerCase()) {
         case ' ':
             e.preventDefault();

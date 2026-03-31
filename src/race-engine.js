@@ -62,7 +62,8 @@ class RaceEngine extends EventEmitter {
         bestLaps: [], // { lap: number, timeMs: number }
         lastSensorTick: 0,
         penaltyUntil: 0,
-        isWinner: false
+        isWinner: false,
+        isCrashed: false
       };
     });
   }
@@ -118,7 +119,36 @@ class RaceEngine extends EventEmitter {
       lane.lastSensorTick = 0;
       lane.penaltyUntil = 0;
       lane.isWinner = false;
+      lane.isCrashed = false;
     });
+    this.emitStateChanged();
+  }
+
+  adjustLap(laneId, delta) {
+    const lane = Object.values(this.state.lanes).find(l => l.hwId === laneId);
+    if (!lane) return;
+    lane.laps += delta;
+    if (lane.laps < 0) lane.laps = 0;
+    this.emitStateChanged();
+  }
+
+  setCrashed(laneId, isCrashed) {
+    const lane = Object.values(this.state.lanes).find(l => l.hwId === laneId);
+    if (!lane) return;
+    lane.isCrashed = isCrashed;
+    
+    if (isCrashed) {
+        if (this.state.status === 'running') {
+            const allCrashed = Object.values(this.state.lanes).every(l => l.isCrashed);
+            if (allCrashed) {
+                this.state.timeRemainingMs = 0;
+                this.triggerHeatEnd(); 
+            }
+        } else if (this.state.status === 'finishing_heat') {
+            this.checkAllLanesFinished();
+        }
+    }
+    
     this.emitStateChanged();
   }
 
@@ -229,6 +259,7 @@ class RaceEngine extends EventEmitter {
     // Enable power for non-penalized lanes
     const now = Date.now();
     Object.values(this.state.lanes).forEach(lane => {
+        lane.isCrashed = false;
         if (lane.penaltyUntil <= now) {
             this.hardware.setLanePower(lane.hwId, true);
         }
@@ -290,7 +321,7 @@ class RaceEngine extends EventEmitter {
   }
 
   checkAllLanesFinished() {
-    const allFinished = Object.values(this.state.lanes).every(l => this.finishedLanes.has(l.hwId));
+    const allFinished = Object.values(this.state.lanes).every(l => this.finishedLanes.has(l.hwId) || l.isCrashed);
     if (allFinished) {
       this.completeHeat();
     }
@@ -426,6 +457,10 @@ class RaceEngine extends EventEmitter {
       return;
     }
 
+    if (this.state.mode === 'race' && laneObj.isCrashed) {
+      return; // Do not count laps for crashed cars in race mode
+    }
+
     // Normal lap logic
     if (laneObj.lastSensorTick === 0) {
       laneObj.lastSensorTick = nowMs;
@@ -441,7 +476,7 @@ class RaceEngine extends EventEmitter {
     laneObj.lastSensorTick = nowMs;
     
     // Slow lap filter
-    if (lapTimeMs > this.config.maxLapTimeMs) return;
+    if (this.state.mode === 'training' && lapTimeMs > this.config.maxLapTimeMs) return;
 
     laneObj.laps++;
     laneObj.lastLapTimeMs = lapTimeMs;

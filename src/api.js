@@ -51,6 +51,12 @@ module.exports = function setupAPI(app) {
           // used for testing on Mac
           raceEngine.hardware.mockLapTrigger(payload.laneId);
           break;
+        case 'adjustLap':
+          raceEngine.adjustLap(payload.laneId, payload.delta);
+          break;
+        case 'setCrashed':
+          raceEngine.setCrashed(payload.laneId, payload.isCrashed);
+          break;
         case 'setGlobalPower':
           raceEngine.setGlobalPower(payload.power);
           break;

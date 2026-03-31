@@ -78,6 +78,7 @@
                 </div>
             </div>
             
+             <button class="crash-btn" style="margin-top: 1rem; font-size: 1rem; padding: 0.5rem; width: 100%; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">MARK CRASHED</button>
              <!-- Debug only -->
              <button class="debug-btn" style="margin-top: 1rem; font-size: 0.8rem; padding: 0.5rem;" onclick="">Simulate Lap (Mac)</button>
         </div>
@@ -182,6 +183,9 @@
                         card.querySelector('.debug-btn').onclick = () => {
                             app.apiCommand('mockLap', { laneId: lane.hwId });
                         };
+                        card.querySelector('.crash-btn').onclick = () => {
+                            app.apiCommand('setCrashed', { laneId: lane.hwId, isCrashed: !lane.isCrashed });
+                        };
                     }
                     
                     // Update content
@@ -207,6 +211,22 @@
                         penaltyEl.style.display = 'flex';
                     } else {
                         penaltyEl.style.display = 'none';
+                    }
+                    
+                    // Crash button state
+                    const crashBtn = card.querySelector('.crash-btn');
+                    if (crashBtn) {
+                        if (lane.isCrashed) {
+                            crashBtn.textContent = 'CAR CRASHED (RESUME?)';
+                            crashBtn.style.background = '#fbbf24'; // amber
+                            crashBtn.style.color = '#000';
+                            card.style.opacity = '0.5';
+                        } else {
+                            crashBtn.textContent = 'MARK CRASHED';
+                            crashBtn.style.background = 'var(--lane-red)';
+                            crashBtn.style.color = '#fff';
+                            card.style.opacity = '1';
+                        }
                     }
                     
                     // Winner highlight
