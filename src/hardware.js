@@ -39,6 +39,8 @@ class Hardware extends EventEmitter {
 
     // Initialize actual hardware if available
     this.hardwareState = {};
+    this.emiDebounceUntil = 0;
+    
     if (pigpioEnabled) {
       this.initHardware();
     }
@@ -61,6 +63,10 @@ class Hardware extends EventEmitter {
 
       // Hardware interrupt callback
       sensor.on('interrupt', (level, tick) => {
+        if (Date.now() < this.emiDebounceUntil) {
+           // Ignore electromagnetic interference spikes from relay switching
+           return;
+        }
         // debounce/jitter will be handled in race logic, just emit raw event here
         this.emit('lapSensorTriggered', { laneId: lane.id, tick });
       });
@@ -93,6 +99,9 @@ class Hardware extends EventEmitter {
   // --- API ---
 
   setLanePower(laneId, isOn) {
+    // EMI blind spot: whenever a relay changes state, ignore lap sensors for 150ms
+    this.emiDebounceUntil = Date.now() + 150;
+    
     const lane = this.lanes.find(l => l.id === laneId);
     if (!lane) return;
     lane.isPowerOn = isOn;
