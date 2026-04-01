@@ -144,8 +144,13 @@ class Hardware extends EventEmitter {
 
   beep(durationMs = 200) {
     if (pigpioEnabled && this.hardwareState.buzzer) {
+      // EMI blind spot for buzzer turning ON
+      this.emiDebounceUntil = Date.now() + 150;
       this.hardwareState.buzzer.digitalWrite(1);
+      
       setTimeout(() => {
+        // EMI blind spot for buzzer turning OFF (major inductive spike)
+        this.emiDebounceUntil = Date.now() + 150;
         this.hardwareState.buzzer.digitalWrite(0);
       }, durationMs);
     } else {

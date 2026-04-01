@@ -331,7 +331,12 @@ class RaceEngine extends EventEmitter {
     this.stopTicker();
     
     // Safety guarantee: Ensure power is explicitly cut for ALL lanes now that the heat is fully over
-    this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, false));
+    // We add a tiny delay to allow any finishing car to coast past the finish line
+    setTimeout(() => {
+        if (this.state.status === 'stopped' || this.state.status === 'finished') {
+            this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, false));
+        }
+    }, 1500);
     
     this.state.currentHeat++;
     if (this.state.currentHeat > this.state.totalHeats) {
@@ -425,7 +430,14 @@ class RaceEngine extends EventEmitter {
          if (L < this.config.minLapTimeMs) return; // Debounce
 
          this.finishedLanes.add(laneId);
-         this.hardware.setLanePower(laneId, false); // Cut power as soon as they cross
+         
+         // Let the car coast past the finish line for 1.5s so it doesn't stop abruptly on the sensor
+         setTimeout(() => {
+             // Avoid cutting power if a new race somehow started in the last 1.5s
+             if (this.state.status === 'finishing_heat' || this.state.status === 'stopped') {
+                 this.hardware.setLanePower(laneId, false);
+             }
+         }, 1500);
 
          const T = this.heatEndTimeMs - laneObj.lastSensorTick;
          if (T > 0 && L > 0) {
