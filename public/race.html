@@ -101,7 +101,14 @@
                 
                 document.getElementById('current-heat').textContent = state.currentHeat > state.totalHeats ? state.totalHeats : state.currentHeat;
                 document.getElementById('total-heats').textContent = state.totalHeats;
-                document.getElementById('time-remaining').textContent = app.formatTimeRemaining(state.timeRemainingMs);
+                
+                const timeEl = document.getElementById('time-remaining');
+                timeEl.textContent = app.formatTimeRemaining(state.timeRemainingMs);
+                if (state.timeRemainingMs < 0) {
+                    timeEl.style.color = 'var(--lane-red)';
+                } else {
+                    timeEl.style.color = '';
+                }
                 
                 // Update Buttons based on state
                 const btnContainer = document.getElementById('control-buttons');

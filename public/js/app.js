@@ -101,6 +101,13 @@ class RacerApp {
   }
 
   formatTimeRemaining(ms) {
+    if (ms < 0) {
+      const absMs = Math.abs(ms);
+      const totalSec = Math.ceil(absMs / 1000); // counts 1, 2, 3 instead of sitting at 0
+      const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+      const s = (totalSec % 60).toString().padStart(2, '0');
+      return `+${m}:${s}`;
+    }
     const totalSec = Math.floor(ms / 1000);
     const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
     const s = (totalSec % 60).toString().padStart(2, '0');

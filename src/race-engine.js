@@ -284,7 +284,7 @@ class RaceEngine extends EventEmitter {
   }
 
   tick() {
-    if (this.state.status !== 'running') return;
+    if (this.state.status !== 'running' && this.state.status !== 'finishing_heat') return;
     
     const now = Date.now();
     const dt = now - this.lastTickTime;
@@ -295,7 +295,7 @@ class RaceEngine extends EventEmitter {
     this.state.timeRemainingMs -= dt;
     console.log(`[DEBUG TICK] dt: ${dt}, timeRemainingMs: ${this.state.timeRemainingMs}, status: ${this.state.status}`);
 
-    // Check penalties
+    // Check penalties (mostly relevant in running, but harmless here)
     Object.values(this.state.lanes).forEach(lane => {
       if (lane.penaltyUntil > 0 && lane.penaltyUntil <= now) {
         lane.penaltyUntil = 0;
@@ -304,7 +304,7 @@ class RaceEngine extends EventEmitter {
     });
 
     if (this.state.timeRemainingMs <= 0 && this.state.status === 'running') {
-      this.state.timeRemainingMs = 0;
+      // Don't snap to zero, so we can track negative "overtime"
       this.triggerHeatEnd();
     }
     
