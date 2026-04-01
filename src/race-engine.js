@@ -138,6 +138,7 @@ class RaceEngine extends EventEmitter {
     lane.isCrashed = isCrashed;
     
     if (isCrashed) {
+        this.hardware.playSound('fanfareLosers');
         if (this.state.status === 'running') {
             const allCrashed = Object.values(this.state.lanes).every(l => l.isCrashed);
             if (allCrashed) {
@@ -368,6 +369,12 @@ class RaceEngine extends EventEmitter {
     Object.values(this.state.lanes).forEach(l => {
          l.isWinner = (l.hwId === winnerId);
     });
+    
+    if (winnerId !== null) {
+         setTimeout(() => {
+             this.hardware.playSound(`TheWinnerIsLane${winnerId}`);
+         }, 2000);
+    }
   }
 
   rotateLanes() {
@@ -424,6 +431,11 @@ class RaceEngine extends EventEmitter {
          if (laneObj.lastSensorTick === 0) {
              // They never started
              this.finishedLanes.add(laneId);
+             if (this.finishedLanes.size === 1) {
+                 this.hardware.playSound('fanfareFirstCar');
+             } else {
+                 this.hardware.playSound('fanfareLosers');
+             }
              this.hardware.setLanePower(laneId, false);
              this.checkAllLanesFinished();
              return;
@@ -433,6 +445,11 @@ class RaceEngine extends EventEmitter {
          if (L < this.config.minLapTimeMs) return; // Debounce
 
          this.finishedLanes.add(laneId);
+         if (this.finishedLanes.size === 1) {
+             this.hardware.playSound('fanfareFirstCar');
+         } else {
+             this.hardware.playSound('fanfareLosers');
+         }
          
          // Let the car coast past the finish line for 1.5s so it doesn't stop abruptly on the sensor
          setTimeout(() => {
