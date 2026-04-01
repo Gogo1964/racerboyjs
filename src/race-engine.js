@@ -372,7 +372,7 @@ class RaceEngine extends EventEmitter {
     
     if (winnerId !== null) {
          setTimeout(() => {
-             this.hardware.playSound(`TheWinnerIsLane${winnerId}`);
+             this.hardware.playSound(`theWinnerIsOnLane${winnerId}`);
          }, 2000);
     }
   }
