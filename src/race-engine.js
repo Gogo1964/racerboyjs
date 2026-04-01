@@ -432,7 +432,7 @@ class RaceEngine extends EventEmitter {
              // They never started
              this.finishedLanes.add(laneId);
              if (this.finishedLanes.size === 1) {
-                 this.hardware.playSound('fanfareFirstCar');
+                 this.hardware.playSound('fanfareWinner');
              } else {
                  this.hardware.playSound('fanfareLosers');
              }
@@ -446,7 +446,7 @@ class RaceEngine extends EventEmitter {
 
          this.finishedLanes.add(laneId);
          if (this.finishedLanes.size === 1) {
-             this.hardware.playSound('fanfareFirstCar');
+             this.hardware.playSound('fanfareWinner');
          } else {
              this.hardware.playSound('fanfareLosers');
          }
