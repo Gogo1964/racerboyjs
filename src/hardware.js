@@ -159,6 +159,10 @@ class Hardware extends EventEmitter {
     }
   }
 
+  playSound(soundName) {
+    this.emit('playSound', { sound: soundName });
+  }
+
   // Debug/Mock helper
   mockLapTrigger(laneId) {
     if (!pigpioEnabled) {

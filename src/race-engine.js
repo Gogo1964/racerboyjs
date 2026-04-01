@@ -230,6 +230,7 @@ class RaceEngine extends EventEmitter {
       let i = 1;
       const step = () => {
         if (this.state.status !== 'starting') return resolve();
+        this.hardware.playSound('beepStartingLight');
         this.hardware.beep(100);
         this.state.currentLight = i;
         this.emitStateChanged();
@@ -265,6 +266,7 @@ class RaceEngine extends EventEmitter {
         }
     });
 
+    this.hardware.playSound('beepStartOfHeat');
     this.hardware.beep(500); // long beep
     this.startTicker();
     this.emitStateChanged();
@@ -312,6 +314,7 @@ class RaceEngine extends EventEmitter {
     this.state.status = 'finishing_heat';
     this.finishedLanes.clear();
     this.heatEndTimeMs = Date.now();
+    this.hardware.playSound('beepHeatTimeout');
     this.hardware.beep(1000); // long beep to signal time up
     
     // We wait for them to finish the lap to determine precise distanceEst in onLapSensor

@@ -25,11 +25,14 @@ class RacerApp {
         this.state = payload;
         this.triggerStateUpdate();
       } else if (type === 'lapRecorded') {
+        this.playSound(`blipLane${payload.laneId}Passed.wav`);
         this.handleLapRecorded(payload);
       } else if (type === 'penalty') {
         this.handlePenalty(payload);
       } else if (type === 'beep') {
         this.handleBeep(payload.durationMs);
+      } else if (type === 'playSound') {
+        this.playSound(`${payload.sound}.wav`);
       }
     };
 
@@ -85,6 +88,11 @@ class RacerApp {
     } catch (e) {
       console.log('Web audio beep failed', e);
     }
+  }
+
+  playSound(filename) {
+    const audio = new Audio(`/${filename}`);
+    audio.play().catch(e => console.log('Audio play failed:', e));
   }
 
   formatMs(ms) {
