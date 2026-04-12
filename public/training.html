@@ -100,9 +100,23 @@
                             
                             const nameInput = card.querySelector('.lane-name-input');
                             if (nameInput) {
+                                nameInput.addEventListener('focus', function() {
+                                    this.dataset.origValue = this.value;
+                                    this.value = '';
+                                });
+                                nameInput.addEventListener('blur', function() {
+                                    if (this.value.trim() === '') {
+                                        this.value = this.dataset.origValue;
+                                    }
+                                });
                                 nameInput.addEventListener('change', (e) => {
-                                    app.apiCommand('setDriverName', { laneId: lane.hwId, name: e.target.value });
-                                    setTimeout(() => app.fetchDrivers(), 200);
+                                    const val = e.target.value.trim();
+                                    if (val) {
+                                        app.apiCommand('setDriverName', { laneId: lane.hwId, name: val });
+                                        setTimeout(() => app.fetchDrivers(), 200);
+                                    } else {
+                                        e.target.value = e.target.dataset.origValue;
+                                    }
                                 });
                             }
                         }
