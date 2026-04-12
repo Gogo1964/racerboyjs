@@ -18,19 +18,19 @@
     </nav>
     
     <div class="container">
-        <div class="header-banner card" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div class="header-banner card" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div style="text-align: left;">
                 <h1 style="margin: 0;" id="race-status">Stopped</h1>
-                <div class="stat-label">Heat <span id="current-heat">1</span> of <span id="total-heats">4</span></div>
+                <div class="stat-label" style="margin-bottom: 1rem;">Heat <span id="current-heat">1</span> of <span id="total-heats">4</span></div>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;" id="control-buttons">
+                    <!-- Dynamically populated buttons -->
+                </div>
             </div>
             
             <div style="text-align: center;">
                 <div class="stat-label">Remaining Time</div>
                 <div class="stat-value mono huge" id="time-remaining">00:00</div>
-            </div>
-            
-            <div style="display: flex; gap: 1rem;" id="control-buttons">
-                <!-- Dynamically populated buttons -->
             </div>
         </div>
         

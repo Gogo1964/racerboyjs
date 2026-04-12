@@ -261,3 +261,24 @@ button:hover {
 button:active {
   transform: translateY(0);
 }
+
+/* Responsive Scaling for Vertical Orientations (Portrait / Mobile) */
+@media (max-width: 900px), (orientation: portrait) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-banner {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  
+  .header-banner > div {
+    text-align: center !important;
+  }
+  
+  #control-buttons {
+    justify-content: center !important;
+  }
+}
