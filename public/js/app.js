@@ -29,8 +29,6 @@ class RacerApp {
         this.handleLapRecorded(payload);
       } else if (type === 'penalty') {
         this.handlePenalty(payload);
-      } else if (type === 'beep') {
-        this.handleBeep(payload.durationMs);
       } else if (type === 'playSound') {
         this.playSound(`${payload.sound}.wav`);
       }
@@ -63,31 +61,6 @@ class RacerApp {
   handlePenalty(payload) {
     console.log(`Penalty on lane ${payload.laneId}`);
     // Visual indicator handles itself via state
-  }
-
-  handleBeep(durationMs) {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return; // not supported
-      
-      const ctx = new AudioContext();
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(440, ctx.currentTime); // 440Hz beep
-      
-      gainNode.gain.setValueAtTime(0.1, ctx.currentTime); // volume
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (durationMs / 1000));
-      
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      
-      osc.start();
-      osc.stop(ctx.currentTime + (durationMs / 1000));
-    } catch (e) {
-      console.log('Web audio beep failed', e);
-    }
   }
 
   playSound(filename) {

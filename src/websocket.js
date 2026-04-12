@@ -44,10 +44,6 @@ function setupWebSocket(server) {
     broadcast('penalty', data);
   });
 
-  raceEngine.hardware.on('mockBeep', (data) => {
-    broadcast('beep', data);
-  });
-
   raceEngine.hardware.on('playSound', (data) => {
     broadcast('playSound', data);
   });

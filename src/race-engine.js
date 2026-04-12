@@ -7,7 +7,7 @@ class RaceEngine extends EventEmitter {
     super();
     this.hardware = hardware;
     this.config = configManager.get();
-    
+
     this.state = {
       mode: 'training', // or 'race'
       status: 'stopped', // 'stopped', 'starting', 'running', 'finishing_heat', 'finished'
@@ -18,17 +18,17 @@ class RaceEngine extends EventEmitter {
     };
 
     this.initLanes();
-    
+
     // Track which lanes have finished their final cool-down lap
     this.finishedLanes = new Set();
-    
+
     // Listen to hardware laps
     this.hardware.on('lapSensorTriggered', this.onLapSensor.bind(this));
-    
+
     // Ticker for countdowns
     this.ticker = null;
     this.lastTickTime = null;
-    
+
     // Apply initial hardware state based on boot mode
     if (this.state.mode === 'training') {
       this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, true));
@@ -75,14 +75,14 @@ class RaceEngine extends EventEmitter {
   emitStateChanged() {
     // Sync hardware electrical state to frontend state before emission
     Object.values(this.state.lanes).forEach(lane => {
-        const hwLane = this.hardware.lanes.find(l => l.id === lane.hwId);
-        if (hwLane) {
-            lane.isPowerOn = hwLane.isPowerOn;
-        }
+      const hwLane = this.hardware.lanes.find(l => l.id === lane.hwId);
+      if (hwLane) {
+        lane.isPowerOn = hwLane.isPowerOn;
+      }
     });
     this.emit('stateChanged');
   }
-  
+
   setGlobalPower(isOn) {
     this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, isOn));
     this.emitStateChanged();
@@ -94,14 +94,14 @@ class RaceEngine extends EventEmitter {
     }
     this.state.mode = mode;
     this.initLanes();
-    
+
     if (mode === 'training') {
       this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, true));
     } else {
       // Race mode: also supply power immediately so they can drive to start line
       this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, true));
     }
-    
+
     this.emitStateChanged();
   }
 
@@ -136,42 +136,42 @@ class RaceEngine extends EventEmitter {
     const lane = Object.values(this.state.lanes).find(l => l.hwId === laneId);
     if (!lane) return;
     lane.isCrashed = isCrashed;
-    
+
     if (isCrashed) {
-        this.hardware.playSound('fanfareLosers');
-        if (this.state.status === 'running') {
-            const allCrashed = Object.values(this.state.lanes).every(l => l.isCrashed);
-            if (allCrashed) {
-                this.state.timeRemainingMs = 0;
-                this.triggerHeatEnd(); 
-            }
-        } else if (this.state.status === 'finishing_heat') {
-            this.checkAllLanesFinished();
+      this.hardware.playSound('fanfareCrashed');
+      if (this.state.status === 'running') {
+        const allCrashed = Object.values(this.state.lanes).every(l => l.isCrashed);
+        if (allCrashed) {
+          this.state.timeRemainingMs = 0;
+          this.triggerHeatEnd();
         }
+      } else if (this.state.status === 'finishing_heat') {
+        this.checkAllLanesFinished();
+      }
     }
-    
+
     this.emitStateChanged();
   }
 
   startRace() {
     if (this.state.status !== 'stopped') return;
     if (this.state.currentHeat > this.state.totalHeats) return;
-    
+
     // Explicitly snap mode back to race if a background tab tampered it
     this.state.mode = 'race';
-    
+
     // Reset sensor ticks so first crossing in the new heat starts the timer
     Object.values(this.state.lanes).forEach(lane => {
       lane.lastSensorTick = 0;
     });
-    
+
     this.state.status = 'starting';
-    
+
     // Turn ON power for all lanes so they can false-start during the countdown!
     this.hardware.lanes.forEach(l => {
-        this.hardware.setLanePower(l.id, true);
+      this.hardware.setLanePower(l.id, true);
     });
-    
+
     this.emitStateChanged();
 
     // Start light sequence mimic
@@ -185,12 +185,12 @@ class RaceEngine extends EventEmitter {
 
   stopRace() {
     if (this.state.status === 'stopped' || this.state.status === 'finished') {
-        // Cancel ENTIRE race
-        this.initLanes();
-        this.state.currentHeat = 1;
-        this.state.timeRemainingMs = 0;
+      // Cancel ENTIRE race
+      this.initLanes();
+      this.state.currentHeat = 1;
+      this.state.timeRemainingMs = 0;
     }
-    
+
     this.state.status = 'stopped';
     this.state.currentLight = 0;
     this.stopTicker();
@@ -209,14 +209,14 @@ class RaceEngine extends EventEmitter {
   resumeRace() {
     if (this.state.status !== 'paused') return;
     this.state.status = 'starting'; // Go back to countdown
-    
+
     // Restore power so cars can false start during the resume countdown
     this.hardware.lanes.forEach(l => {
-        this.hardware.setLanePower(l.id, true);
+      this.hardware.setLanePower(l.id, true);
     });
-    
+
     this.emitStateChanged();
-    
+
     this.startLightSequence()
       .then(() => {
         if (this.state.status === 'starting') {
@@ -232,16 +232,15 @@ class RaceEngine extends EventEmitter {
       const step = () => {
         if (this.state.status !== 'starting') return resolve();
         this.hardware.playSound('beepStartingLight');
-        this.hardware.beep(100);
         this.state.currentLight = i;
         this.emitStateChanged();
-        
+
         setTimeout(() => {
           i++;
           if (i <= 5) step();
           else {
-             this.state.currentLight = 0;
-             resolve();
+            this.state.currentLight = 0;
+            resolve();
           }
         }, 1000);
       };
@@ -252,23 +251,22 @@ class RaceEngine extends EventEmitter {
   beginHeat(isResume = false) {
     this.state.status = 'running';
     if (!isResume) {
-        this.state.timeRemainingMs = this.config.heatDurationSec * 1000;
+      this.state.timeRemainingMs = this.config.heatDurationSec * 1000;
     }
-    
+
     // Always reset the precise tick tracker so we don't subtract the massive paused gap
     this.lastTickTime = Date.now();
-    
+
     // Enable power for non-penalized lanes
     const now = Date.now();
     Object.values(this.state.lanes).forEach(lane => {
-        lane.isCrashed = false;
-        if (lane.penaltyUntil <= now) {
-            this.hardware.setLanePower(lane.hwId, true);
-        }
+      lane.isCrashed = false;
+      if (lane.penaltyUntil <= now) {
+        this.hardware.setLanePower(lane.hwId, true);
+      }
     });
 
     this.hardware.playSound('beepStartOfHeat');
-    this.hardware.beep(500); // long beep
     this.startTicker();
     this.emitStateChanged();
   }
@@ -285,13 +283,13 @@ class RaceEngine extends EventEmitter {
 
   tick() {
     if (this.state.status !== 'running' && this.state.status !== 'finishing_heat') return;
-    
+
     const now = Date.now();
     const dt = now - this.lastTickTime;
     this.lastTickTime = now;
-    
+
     if (this.state.status === 'paused') return;
-    
+
     this.state.timeRemainingMs -= dt;
     console.log(`[DEBUG TICK] dt: ${dt}, timeRemainingMs: ${this.state.timeRemainingMs}, status: ${this.state.status}`);
 
@@ -307,7 +305,7 @@ class RaceEngine extends EventEmitter {
       // Don't snap to zero, so we can track negative "overtime"
       this.triggerHeatEnd();
     }
-    
+
     this.emitStateChanged(); // Could optimize to avoid spamming every 100ms
   }
 
@@ -316,10 +314,9 @@ class RaceEngine extends EventEmitter {
     this.finishedLanes.clear();
     this.heatEndTimeMs = Date.now();
     this.hardware.playSound('beepHeatTimeout');
-    this.hardware.beep(1000); // long beep to signal time up
-    
+
     // We wait for them to finish the lap to determine precise distanceEst in onLapSensor
-    
+
     this.checkAllLanesFinished();
     this.emitStateChanged();
   }
@@ -333,15 +330,15 @@ class RaceEngine extends EventEmitter {
 
   completeHeat() {
     this.stopTicker();
-    
+
     // Safety guarantee: Ensure power is explicitly cut for ALL lanes now that the heat is fully over
     // We add a tiny delay to allow any finishing car to coast past the finish line
     setTimeout(() => {
-        if (this.state.status === 'stopped' || this.state.status === 'finished') {
-            this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, false));
-        }
+      if (this.state.status === 'stopped' || this.state.status === 'finished') {
+        this.hardware.lanes.forEach(l => this.hardware.setLanePower(l.id, false));
+      }
     }, 1500);
-    
+
     this.state.currentHeat++;
     if (this.state.currentHeat > this.state.totalHeats) {
       this.state.status = 'finished';
@@ -350,7 +347,7 @@ class RaceEngine extends EventEmitter {
       this.state.status = 'stopped';
       this.rotateLanes();
     }
-    
+
     this.emitStateChanged();
   }
 
@@ -359,21 +356,21 @@ class RaceEngine extends EventEmitter {
     let winnerId = null;
     let maxScore = -1;
     Object.values(this.state.lanes).forEach(l => {
-        const score = l.laps + l.distanceEst;
-        if (score > maxScore) {
-             maxScore = score;
-             winnerId = l.hwId;
-        }
+      const score = l.laps + l.distanceEst;
+      if (score > maxScore) {
+        maxScore = score;
+        winnerId = l.hwId;
+      }
     });
     // Mark winner in state
     Object.values(this.state.lanes).forEach(l => {
-         l.isWinner = (l.hwId === winnerId);
+      l.isWinner = (l.hwId === winnerId);
     });
-    
+
     if (winnerId !== null) {
-         setTimeout(() => {
-             this.hardware.playSound(`theWinnerIsOnLane${winnerId}`);
-         }, 2000);
+      setTimeout(() => {
+        this.hardware.playSound(`theWinnerIsOnLane${winnerId}`);
+      }, 1000);
     }
   }
 
@@ -382,36 +379,36 @@ class RaceEngine extends EventEmitter {
     // e.g., if lane 1 had "Driver A" and lane 2 had "Driver B",
     // now lane 1 gets "Driver B" and lane 2 gets "Driver A".
     // We swap the *contents* of the lane objects but keep `hwId` stable.
-    
-    const hwIds = Object.keys(this.state.lanes).map(Number).sort((a,b)=>a-b);
+
+    const hwIds = Object.keys(this.state.lanes).map(Number).sort((a, b) => a - b);
     if (hwIds.length < 2) return;
-    
+
     // Store original data
     const oldData = {};
     hwIds.forEach(id => {
-        oldData[id] = Object.assign({}, this.state.lanes[id]);
+      oldData[id] = Object.assign({}, this.state.lanes[id]);
     });
-    
+
     // Shift data: Driver in lane N goes to lane N+1
     for (let i = 0; i < hwIds.length; i++) {
-        const currentId = hwIds[i];
-        const prevId = hwIds[(i - 1 + hwIds.length) % hwIds.length];
-        
-        // Target lane gets the prev lane's driver data
-        const oldState = oldData[prevId];
-        
-        // Re-assign everything EXCEPT hwId and lastSensorTick
-        this.state.lanes[currentId] = Object.assign({}, oldState, {
-             hwId: currentId,
-             lastSensorTick: 0
-        });
+      const currentId = hwIds[i];
+      const prevId = hwIds[(i - 1 + hwIds.length) % hwIds.length];
+
+      // Target lane gets the prev lane's driver data
+      const oldState = oldData[prevId];
+
+      // Re-assign everything EXCEPT hwId and lastSensorTick
+      this.state.lanes[currentId] = Object.assign({}, oldState, {
+        hwId: currentId,
+        lastSensorTick: 0
+      });
     }
   }
 
   onLapSensor(data) {
     const { laneId, tick } = data; // tick is in microseconds (pigpio)
     const nowMs = Date.now(); // fallback to ms
-    
+
     const laneObj = Object.values(this.state.lanes).find(l => l.hwId === laneId);
     if (!laneObj) return;
 
@@ -428,57 +425,42 @@ class RaceEngine extends EventEmitter {
     // Heat is over, cars are returning to start line
     if (this.state.status === 'finishing_heat' || this.state.status === 'finished') {
       if (!this.finishedLanes.has(laneId)) {
-         if (laneObj.lastSensorTick === 0) {
-             // They never started
-             this.finishedLanes.add(laneId);
-             if (this.finishedLanes.size === 1) {
-                 this.hardware.playSound('fanfareWinner');
-             } else {
-                 this.hardware.playSound('fanfareLosers');
-             }
-             this.hardware.setLanePower(laneId, false);
-             this.checkAllLanesFinished();
-             return;
-         }
+        if (laneObj.lastSensorTick === 0) {
+          // They never started
+          this.finishedLanes.add(laneId);
+          this.hardware.playSound('fanfareHeatFinished');
+          this.hardware.setLanePower(laneId, false);
+          this.checkAllLanesFinished();
+          return;
+        }
 
-         const L = nowMs - laneObj.lastSensorTick;
-         if (L < this.config.minLapTimeMs) return; // Debounce
+        const L = nowMs - laneObj.lastSensorTick;
+        if (L < this.config.minLapTimeMs) return; // Debounce
 
-         this.finishedLanes.add(laneId);
-         if (this.finishedLanes.size === 1) {
-             this.hardware.playSound('fanfareWinner');
-         } else {
-             this.hardware.playSound('fanfareLosers');
-         }
-         
-         // Let the car coast past the finish line for 1.5s so it doesn't stop abruptly on the sensor
-         setTimeout(() => {
-             // Avoid cutting power if a new race somehow started in the last 1.5s
-             if (this.state.status === 'finishing_heat' || this.state.status === 'stopped') {
-                 this.hardware.setLanePower(laneId, false);
-             }
-         }, 1500);
+        this.finishedLanes.add(laneId);
+        this.hardware.setLanePower(laneId, false);
+        this.hardware.playSound('fanfareHeatFinished');
 
-         const T = this.heatEndTimeMs - laneObj.lastSensorTick;
-         if (T > 0 && L > 0) {
-             let referenceTime = laneObj.averageLapTimeMs;
-             if (this.config.distanceCalculationMode === 'last-lap' || referenceTime === 0) {
-                 referenceTime = L;
-             }
-             if (referenceTime > 0) {
-                 let fraction = T / referenceTime;
-                 if (fraction > 1.0) fraction = 1.0;
-                 laneObj.distanceEst += fraction;
-                 
-                 while (laneObj.distanceEst >= 1.0) {
-                     laneObj.laps++;
-                     laneObj.distanceEst -= 1.0;
-                 }
-             }
-         }
+        const T = this.heatEndTimeMs - laneObj.lastSensorTick;
+        if (T > 0 && L > 0) {
+          let referenceTime = laneObj.averageLapTimeMs;
+          if (this.config.distanceCalculationMode === 'last-lap' || referenceTime === 0) {
+            referenceTime = L;
+          }
+          if (referenceTime > 0) {
+            let fraction = T / referenceTime;
+            if (fraction > 1.0) fraction = 1.0;
+            laneObj.distanceEst += fraction;
 
-         this.checkAllLanesFinished();
-         this.emitStateChanged();
+            while (laneObj.distanceEst >= 1.0) {
+              laneObj.laps++;
+              laneObj.distanceEst -= 1.0;
+            }
+          }
+        }
+
+        this.checkAllLanesFinished();
+        this.emitStateChanged();
       }
       return; // Do not record the physical lap time in normal arrays
     }
@@ -498,7 +480,7 @@ class RaceEngine extends EventEmitter {
       laneObj.lastSensorTick = nowMs;
       return; // first cross = start
     }
-    
+
     const lapTimeMs = nowMs - laneObj.lastSensorTick;
 
     // Jitter/debounce filter
@@ -506,7 +488,7 @@ class RaceEngine extends EventEmitter {
 
     // Record lap
     laneObj.lastSensorTick = nowMs;
-    
+
     // Slow lap filter
     if (this.state.mode === 'training' && lapTimeMs > this.config.maxLapTimeMs) return;
 
@@ -514,20 +496,17 @@ class RaceEngine extends EventEmitter {
     laneObj.lastLapTimeMs = lapTimeMs;
     laneObj.history.push(lapTimeMs);
     if (laneObj.history.length > 10) laneObj.history.shift();
-    
+
     laneObj.bestLaps.push({ lap: laneObj.laps, timeMs: lapTimeMs });
-    laneObj.bestLaps.sort((a,b) => a.timeMs - b.timeMs);
+    laneObj.bestLaps.sort((a, b) => a.timeMs - b.timeMs);
     if (laneObj.bestLaps.length > 10) laneObj.bestLaps.pop();
-    
-    laneObj.averageLapTimeMs = laneObj.history.reduce((a,b)=>a+b,0) / laneObj.history.length;
-    
+
+    laneObj.averageLapTimeMs = laneObj.history.reduce((a, b) => a + b, 0) / laneObj.history.length;
+
     let isPb = false;
     if (lapTimeMs < laneObj.bestLapTimeMs) {
       laneObj.bestLapTimeMs = lapTimeMs;
       isPb = true;
-      if (this.state.mode === 'training') {
-        this.hardware.beep(100); // short beep for PB
-      }
     }
 
     this.emit('lapRecorded', { laneId, lapTimeMs, isPb });
