@@ -25,7 +25,11 @@ class RacerApp {
         this.state = payload;
         this.triggerStateUpdate();
       } else if (type === 'lapRecorded') {
-        this.playSound(`blipLane${payload.laneId}Passed.wav`);
+        if (this.state && this.state.mode === 'training' && payload.isPb) {
+          this.playSound('blipLaneNewBest.wav');
+        } else {
+          this.playSound(`blipLane${payload.laneId}Passed.wav`);
+        }
         this.handleLapRecorded(payload);
       } else if (type === 'penalty') {
         this.handlePenalty(payload);
