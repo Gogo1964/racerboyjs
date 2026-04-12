@@ -293,8 +293,13 @@ class RaceEngine extends EventEmitter {
     const now = Date.now();
     Object.values(this.state.lanes).forEach(lane => {
       lane.isCrashed = false;
-      if (lane.penaltyUntil <= now) {
-        this.hardware.setLanePower(lane.hwId, true);
+      
+      if (lane.penaltyUntil > now) {
+          // If they false-started during countdown, start the penalty officially NOW
+          lane.penaltyUntil = now + (this.config.penaltyDurationSec * 1000);
+      } else {
+          // No penalty, give them power immediately
+          this.hardware.setLanePower(lane.hwId, true);
       }
     });
 
@@ -481,7 +486,8 @@ class RaceEngine extends EventEmitter {
     if (this.state.mode === 'race' && this.state.status === 'starting') {
       // PENALTY!
       if (laneObj.penaltyUntil <= nowMs) {
-          laneObj.penaltyUntil = nowMs + (this.config.penaltyDurationSec * 1000);
+          // Set to infinity basically, so it blocks them until beginHeat() trims it back to reality
+          laneObj.penaltyUntil = nowMs + 1000000;
           raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
           this.hardware.setLanePower(laneId, false);
           this.emit('penalty', { laneId });
