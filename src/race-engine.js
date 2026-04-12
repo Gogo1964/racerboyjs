@@ -484,6 +484,10 @@ class RaceEngine extends EventEmitter {
     const laneObj = Object.values(this.state.lanes).find(l => l.hwId === laneId);
     if (!laneObj) return;
 
+    if (this.state.mode === 'race') {
+      raceLogger.logEvent(`ATT: Hardware Sensor Triggered - Lane ${laneId} (${laneObj.name})`);
+    }
+
     // False start check during 'starting'
     if (this.state.mode === 'race' && this.state.status === 'starting') {
       // PENALTY!
