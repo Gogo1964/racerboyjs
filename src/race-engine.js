@@ -509,6 +509,7 @@ class RaceEngine extends EventEmitter {
         if (laneObj.lastSensorTick === 0) {
           // They never started
           this.finishedLanes.add(laneId);
+          raceLogger.logEvent(`Lane ${laneId} (${laneObj.name}) finished the heat. (0 Laps / DNS)`);
           this.hardware.setLanePower(laneId, false);
           this.checkAllLanesFinished();
           return;
@@ -518,6 +519,7 @@ class RaceEngine extends EventEmitter {
         if (L < this.config.minLapTimeMs) return; // Debounce
 
         this.finishedLanes.add(laneId);
+        raceLogger.logEvent(`Lane ${laneId} (${laneObj.name}) finished the heat.`);
         this.hardware.setLanePower(laneId, false);
 
         const T = this.heatEndTimeMs - laneObj.lastSensorTick;
