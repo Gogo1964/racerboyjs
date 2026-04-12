@@ -368,6 +368,8 @@ class RaceEngine extends EventEmitter {
 
   completeHeat() {
     this.stopTicker();
+    
+    this.hardware.playSound('fanfareHeatFinished');
 
     raceLogger.logEvent(`Heat ${this.state.currentHeat} Completed. Current Laps: ` + Object.values(this.state.lanes).map(l => `Lane ${l.hwId} (${l.name}): ${(l.laps + (l.distanceEst || 0)).toFixed(2)}`).join(' | '));
 
@@ -507,7 +509,6 @@ class RaceEngine extends EventEmitter {
         if (laneObj.lastSensorTick === 0) {
           // They never started
           this.finishedLanes.add(laneId);
-          this.hardware.playSound('fanfareHeatFinished');
           this.hardware.setLanePower(laneId, false);
           this.checkAllLanesFinished();
           return;
@@ -518,7 +519,6 @@ class RaceEngine extends EventEmitter {
 
         this.finishedLanes.add(laneId);
         this.hardware.setLanePower(laneId, false);
-        this.hardware.playSound('fanfareHeatFinished');
 
         const T = this.heatEndTimeMs - laneObj.lastSensorTick;
         if (T > 0 && L > 0) {
