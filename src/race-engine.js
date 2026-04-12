@@ -480,11 +480,18 @@ class RaceEngine extends EventEmitter {
     // False start check during 'starting'
     if (this.state.mode === 'race' && this.state.status === 'starting') {
       // PENALTY!
-      laneObj.penaltyUntil = Date.now() + (this.config.penaltyDurationSec * 1000);
-      raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
-      this.hardware.setLanePower(laneId, false);
-      this.emit('penalty', { laneId });
-      this.emitStateChanged();
+      if (laneObj.penaltyUntil <= nowMs) {
+          laneObj.penaltyUntil = nowMs + (this.config.penaltyDurationSec * 1000);
+          raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
+          this.hardware.setLanePower(laneId, false);
+          this.emit('penalty', { laneId });
+          this.emitStateChanged();
+      }
+      return;
+    }
+
+    if (this.state.mode === 'race' && laneObj.penaltyUntil > nowMs) {
+      // Ignore sensor hits while the car is completely dead due to penalty
       return;
     }
 

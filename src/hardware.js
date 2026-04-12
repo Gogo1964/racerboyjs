@@ -99,11 +99,13 @@ class Hardware extends EventEmitter {
   // --- API ---
 
   setLanePower(laneId, isOn) {
-    // EMI blind spot: whenever a relay changes state, ignore lap sensors for 150ms
-    this.emiDebounceUntil = Date.now() + 150;
-    
     const lane = this.lanes.find(l => l.id === laneId);
     if (!lane) return;
+
+    if (lane.isPowerOn !== isOn) {
+        this.emiDebounceUntil = Date.now() + 200;
+    }
+    
     lane.isPowerOn = isOn;
 
     if (pigpioEnabled && this.hardwareState.lanes[laneId]) {
