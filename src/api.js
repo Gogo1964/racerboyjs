@@ -3,7 +3,7 @@ const raceEngine = require('./race-engine');
 const fs = require('fs');
 const path = require('path');
 
-const DRIVERS_FILE = path.join(__dirname, '..', 'drivers.json');
+const DRIVERS_FILE = path.join(__dirname, '..', 'data', 'drivers.json');
 
 function getDrivers() {
   if (!fs.existsSync(DRIVERS_FILE)) {
