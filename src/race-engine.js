@@ -179,6 +179,7 @@ class RaceEngine extends EventEmitter {
     if (this.state.currentHeat === 1) {
       raceLogger.startRace(this.config, this.state.lanes);
       raceLogger.logEvent(`--- RACE PROTOCOL STARTED ---`);
+      this.raceStartTimeMs = Date.now();
     }
 
     // Explicitly snap mode back to race if a background tab tampered it
@@ -363,7 +364,7 @@ class RaceEngine extends EventEmitter {
   completeHeat() {
     this.stopTicker();
 
-    raceLogger.logEvent(`Heat ${this.state.currentHeat} Completed. Current Laps: ` + Object.values(this.state.lanes).map(l => `Lane ${l.hwId}: ${l.laps}`).join(' | '));
+    raceLogger.logEvent(`Heat ${this.state.currentHeat} Completed. Current Laps: ` + Object.values(this.state.lanes).map(l => `Lane ${l.hwId} (${l.name}): ${(l.laps + (l.distanceEst || 0)).toFixed(2)}`).join(' | '));
 
     // Safety guarantee: Ensure power is explicitly cut for ALL lanes now that the heat is fully over
     // We add a tiny delay to allow any finishing car to coast past the finish line
@@ -391,7 +392,7 @@ class RaceEngine extends EventEmitter {
     let winnerId = null;
     let maxScore = -1;
     Object.values(this.state.lanes).forEach(l => {
-      const score = l.laps + l.distanceEst;
+      const score = l.laps + (l.distanceEst || 0);
       if (score > maxScore) {
         maxScore = score;
         winnerId = l.hwId;
@@ -401,6 +402,35 @@ class RaceEngine extends EventEmitter {
     Object.values(this.state.lanes).forEach(l => {
       l.isWinner = (l.hwId === winnerId);
     });
+
+    const winnerLane = Object.values(this.state.lanes).find(l => l.hwId === winnerId);
+    
+    let summary = `\n====================================================\n`;
+    summary += `                 RACE SUMMARY\n`;
+    summary += `----------------------------------------------------\n`;
+    summary += `Total Heats: ${this.state.totalHeats}\n`;
+    if (this.raceStartTimeMs) {
+        const durSec = ((Date.now() - this.raceStartTimeMs) / 1000).toFixed(1);
+        summary += `Total Race Duration: ${durSec} sec\n`;
+    }
+    summary += `\nFinal Standings:\n`;
+    
+    const sortedLanes = Object.values(this.state.lanes).sort((a, b) => (b.laps + (b.distanceEst || 0)) - (a.laps + (a.distanceEst || 0)));
+    
+    sortedLanes.forEach((l, idx) => {
+        const score = (l.laps + (l.distanceEst || 0)).toFixed(2);
+        summary += `  ${idx + 1}. ${l.name} (Lane ${l.hwId})\n`;
+        summary += `     Total Laps: ${score}\n`;
+        summary += `     Best Lap: ${l.bestLapTimeMs === Infinity ? 'N/A' : (l.bestLapTimeMs/1000).toFixed(3) + 's'}\n`;
+        summary += `     Avg Lap: ${l.averageLapTimeMs === 0 ? 'N/A' : (l.averageLapTimeMs/1000).toFixed(3) + 's'}\n\n`;
+    });
+    
+    if (winnerLane) {
+        summary += `WINNER: ${winnerLane.name}!!!\n`;
+    }
+    summary += `====================================================`;
+    
+    raceLogger.logEvent(summary);
 
     if (winnerId !== null) {
       setTimeout(() => {
