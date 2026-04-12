@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const hardware = require('./hardware');
 const configManager = require('./configManager');
+const raceLogger = require('./raceLogger');
 
 class RaceEngine extends EventEmitter {
   constructor() {
@@ -151,6 +152,10 @@ class RaceEngine extends EventEmitter {
     if (!lane) return;
     lane.isCrashed = isCrashed;
 
+    if (this.state.mode === 'race') {
+      raceLogger.logEvent(`Lane ${lane.hwId} (${lane.name}) was marked ${isCrashed ? 'CRASHED' : 'RESUMED'}.`);
+    }
+
     if (isCrashed) {
       this.hardware.playSound('fanfareCrashed');
       if (this.state.status === 'running') {
@@ -170,6 +175,11 @@ class RaceEngine extends EventEmitter {
   startRace() {
     if (this.state.status !== 'stopped') return;
     if (this.state.currentHeat > this.state.totalHeats) return;
+
+    if (this.state.currentHeat === 1) {
+      raceLogger.startRace(this.config, this.state.lanes);
+      raceLogger.logEvent(`--- RACE PROTOCOL STARTED ---`);
+    }
 
     // Explicitly snap mode back to race if a background tab tampered it
     this.state.mode = 'race';
@@ -203,6 +213,10 @@ class RaceEngine extends EventEmitter {
       this.initLanes();
       this.state.currentHeat = 1;
       this.state.timeRemainingMs = 0;
+    }
+
+    if (this.state.mode === 'race' && this.state.status !== 'stopped') {
+       raceLogger.logEvent(`Race Manually Stopped/Cancelled.`);
     }
 
     this.state.status = 'stopped';
@@ -266,6 +280,9 @@ class RaceEngine extends EventEmitter {
     this.state.status = 'running';
     if (!isResume) {
       this.state.timeRemainingMs = this.config.heatDurationSec * 1000;
+      raceLogger.logEvent(`--- Heat ${this.state.currentHeat} Started ---`);
+    } else {
+      raceLogger.logEvent(`Heat ${this.state.currentHeat} Resumed.`);
     }
 
     // Always reset the precise tick tracker so we don't subtract the massive paused gap
@@ -328,6 +345,7 @@ class RaceEngine extends EventEmitter {
     this.finishedLanes.clear();
     this.heatEndTimeMs = Date.now();
     this.hardware.playSound('beepHeatTimeout');
+    raceLogger.logEvent(`Heat Time Over! Waiting for cars to coast to finish line...`);
 
     // We wait for them to finish the lap to determine precise distanceEst in onLapSensor
 
@@ -345,6 +363,8 @@ class RaceEngine extends EventEmitter {
   completeHeat() {
     this.stopTicker();
 
+    raceLogger.logEvent(`Heat ${this.state.currentHeat} Completed. Current Laps: ` + Object.values(this.state.lanes).map(l => `Lane ${l.hwId}: ${l.laps}`).join(' | '));
+
     // Safety guarantee: Ensure power is explicitly cut for ALL lanes now that the heat is fully over
     // We add a tiny delay to allow any finishing car to coast past the finish line
     setTimeout(() => {
@@ -356,6 +376,7 @@ class RaceEngine extends EventEmitter {
     this.state.currentHeat++;
     if (this.state.currentHeat > this.state.totalHeats) {
       this.state.status = 'finished';
+      raceLogger.logEvent(`ALL HEATS COMPLETED. Race Finished!`);
       this.determineWinner();
     } else {
       this.state.status = 'stopped';
@@ -430,6 +451,7 @@ class RaceEngine extends EventEmitter {
     if (this.state.mode === 'race' && this.state.status === 'starting') {
       // PENALTY!
       laneObj.penaltyUntil = Date.now() + (this.config.penaltyDurationSec * 1000);
+      raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
       this.hardware.setLanePower(laneId, false);
       this.emit('penalty', { laneId });
       this.emitStateChanged();
@@ -521,6 +543,10 @@ class RaceEngine extends EventEmitter {
     if (lapTimeMs < laneObj.bestLapTimeMs) {
       laneObj.bestLapTimeMs = lapTimeMs;
       isPb = true;
+    }
+
+    if (this.state.mode === 'race') {
+      raceLogger.logEvent(`Lap Recorded - Lane ${laneId} (${laneObj.name}): Lap ${laneObj.laps} | Time: ${(lapTimeMs/1000).toFixed(3)}s | Avg: ${(laneObj.averageLapTimeMs/1000).toFixed(3)}s`);
     }
 
     this.emit('lapRecorded', { laneId, lapTimeMs, isPb });
