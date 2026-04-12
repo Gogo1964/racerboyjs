@@ -59,7 +59,7 @@
 
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <h2 class="lane-name"></h2>
+                    <input type="text" class="lane-name-input" list="driver-list" style="font-size: 2rem; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid rgba(255,255,255,0.2); color: inherit; width: 100%; outline: none;" placeholder="Driver Name" spellcheck="false" autocomplete="off" />
                     
                     <div class="stat-group" style="margin-top: 2rem;">
                         <div class="stat-label">Laps</div>
@@ -193,11 +193,23 @@
                         card.querySelector('.crash-btn').onclick = () => {
                             app.apiCommand('setCrashed', { laneId: lane.hwId, isCrashed: !lane.isCrashed });
                         };
+                        
+                        const nameInput = card.querySelector('.lane-name-input');
+                        if (nameInput) {
+                            nameInput.addEventListener('change', (e) => {
+                                app.apiCommand('setDriverName', { laneId: lane.hwId, name: e.target.value });
+                                setTimeout(() => app.fetchDrivers(), 200);
+                            });
+                        }
                     }
                     
                     // Update content
                     card.setAttribute('data-color', lane.color);
-                    card.querySelector('.lane-name').textContent = lane.name || `Lane ${lane.hwId}`;
+                    
+                    const nameInput = card.querySelector('.lane-name-input');
+                    if (nameInput && document.activeElement !== nameInput) {
+                        nameInput.value = lane.name || `Lane ${lane.hwId}`;
+                    }
                     
                     // Power Indicator
                     const powerDot = card.querySelector('.power-indicator');

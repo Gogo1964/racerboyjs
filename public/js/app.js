@@ -4,10 +4,37 @@ class RacerApp {
     this.ws = null;
     this.reconnectTimer = null;
     this.onStateUpdateCbs = [];
+    this.drivers = [];
   }
 
   init() {
     this.connectWS();
+    this.fetchDrivers();
+  }
+
+  async fetchDrivers() {
+    try {
+      const res = await fetch('/api/drivers');
+      this.drivers = await res.json();
+      this.renderDriverList();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  renderDriverList() {
+    let datalist = document.getElementById('driver-list');
+    if (!datalist) {
+      datalist = document.createElement('datalist');
+      datalist.id = 'driver-list';
+      document.body.appendChild(datalist);
+    }
+    datalist.innerHTML = '';
+    this.drivers.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      datalist.appendChild(opt);
+    });
   }
 
   connectWS() {

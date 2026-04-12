@@ -1,10 +1,40 @@
 const configManager = require('./configManager');
-const raceEngine = require('./race-engine'); // we will implement this next
+const raceEngine = require('./race-engine');
+const fs = require('fs');
+const path = require('path');
+
+const DRIVERS_FILE = path.join(__dirname, '..', 'drivers.json');
+
+function getDrivers() {
+  if (!fs.existsSync(DRIVERS_FILE)) {
+    const defaultDrivers = ["Driver 1", "Driver 2"];
+    fs.writeFileSync(DRIVERS_FILE, JSON.stringify(defaultDrivers));
+    return defaultDrivers;
+  }
+  try {
+    return JSON.parse(fs.readFileSync(DRIVERS_FILE, 'utf8'));
+  } catch (e) {
+    return ["Driver 1", "Driver 2"];
+  }
+}
+
+function addDriver(name) {
+  const drivers = getDrivers();
+  if (!drivers.includes(name)) {
+    drivers.push(name);
+    fs.writeFileSync(DRIVERS_FILE, JSON.stringify(drivers));
+  }
+}
 
 module.exports = function setupAPI(app) {
   // Get Configuration
   app.get('/api/config', (req, res) => {
     res.json(configManager.get());
+  });
+
+  // Get Drivers
+  app.get('/api/drivers', (req, res) => {
+    res.json(getDrivers());
   });
 
   // Update Configuration
@@ -67,6 +97,15 @@ module.exports = function setupAPI(app) {
                  const newPower = !lane.isPowerOn;
                  raceEngine.hardware.setLanePower(payload.laneId, newPower);
                  raceEngine.emitStateChanged();
+             }
+          }
+          break;
+        case 'setDriverName':
+          {
+             const newName = payload.name.trim();
+             if (newName) {
+                 addDriver(newName);
+                 raceEngine.setDriverName(payload.laneId, newName);
              }
           }
           break;

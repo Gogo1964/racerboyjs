@@ -17,6 +17,11 @@ class RaceEngine extends EventEmitter {
       lanes: {}
     };
 
+    this.driverNames = { 
+        1: this.config.lane1 ? this.config.lane1.name : "Driver 1", 
+        2: this.config.lane2 ? this.config.lane2.name : "Driver 2" 
+    };
+
     this.initLanes();
 
     // Track which lanes have finished their final cool-down lap
@@ -41,6 +46,15 @@ class RaceEngine extends EventEmitter {
     this.emitStateChanged();
   }
 
+  setDriverName(laneId, name) {
+    this.driverNames[laneId] = name;
+    const lane = Object.values(this.state.lanes).find(l => l.hwId === laneId);
+    if (lane) {
+      lane.name = name;
+    }
+    this.emitStateChanged();
+  }
+
   initLanes() {
     // We map hw lane 1 -> logical lane 1 initially. 
     // In races, cars swap lanes after heats. 
@@ -51,7 +65,7 @@ class RaceEngine extends EventEmitter {
       let lc = this.config[`lane${id}`];
       this.state.lanes[id] = {
         hwId: id,
-        name: lc ? lc.name : `Driver ${id}`,
+        name: this.driverNames[id] || (lc ? lc.name : `Driver ${id}`),
         color: lc ? lc.color : (id === 1 ? 'green' : 'blue'),
         laps: 0,
         distanceEst: 0, // 0 to 1 percentage string or float

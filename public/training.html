@@ -38,7 +38,7 @@
         <template id="lane-template">
             <div class="card lane-card" style="position: relative;">
                 <div class="power-indicator" style="display: none; position: absolute; top: 1.5rem; right: 2rem; width: 14px; height: 14px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444;" title="Power ON"></div>
-                <h2 class="lane-name"></h2>
+                <input type="text" class="lane-name-input" list="driver-list" style="margin-bottom: 2rem; font-size: 2rem; font-weight: bold; background: transparent; border: none; border-bottom: 2px solid rgba(255,255,255,0.2); color: inherit; width: 100%; outline: none;" placeholder="Driver Name" spellcheck="false" autocomplete="off" />
 
                 <div style="display: flex; gap: 2rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem;">
                     <div class="stat-group" style="margin-bottom: 0;">
@@ -97,11 +97,23 @@
                             card.querySelector('.debug-btn').onclick = () => {
                                 app.apiCommand('mockLap', { laneId: lane.hwId });
                             };
+                            
+                            const nameInput = card.querySelector('.lane-name-input');
+                            if (nameInput) {
+                                nameInput.addEventListener('change', (e) => {
+                                    app.apiCommand('setDriverName', { laneId: lane.hwId, name: e.target.value });
+                                    setTimeout(() => app.fetchDrivers(), 200);
+                                });
+                            }
                         }
 
                         // Update content
                         card.setAttribute('data-color', lane.color);
-                        card.querySelector('.lane-name').textContent = lane.name || `Lane ${lane.hwId}`;
+                        
+                        const nameInput = card.querySelector('.lane-name-input');
+                        if (nameInput && document.activeElement !== nameInput) {
+                            nameInput.value = lane.name || `Lane ${lane.hwId}`;
+                        }
                         card.querySelector('.lane-laps').textContent = lane.laps;
                         
                         // Power Indicator
