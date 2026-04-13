@@ -22,8 +22,9 @@ class RaceLogger {
         return file;
       }
       const stat = fs.statSync(file);
-      if (stat.mtimeMs < oldestTime) {
-        oldestTime = stat.mtimeMs;
+      const timeMs = stat.mtime ? stat.mtime.getTime() : 0;
+      if (timeMs < oldestTime) {
+        oldestTime = timeMs;
         oldestFile = file;
       }
     }
