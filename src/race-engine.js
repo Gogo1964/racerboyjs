@@ -53,6 +53,13 @@ class RaceEngine extends EventEmitter {
     if (lane) {
       lane.name = name;
     }
+
+    // Persist to config so it survives server reboots
+    configManager.update({
+      [`lane${laneId}`]: { name: name }
+    });
+    this.config = configManager.get();
+
     this.emitStateChanged();
   }
 
