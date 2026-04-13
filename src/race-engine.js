@@ -548,7 +548,6 @@ class RaceEngine extends EventEmitter {
           
           if (referenceTime > 0) {
             let fraction = T / referenceTime;
-            if (fraction > 1.0) fraction = 1.0;
             laneObj.distanceEst += fraction;
 
             while (laneObj.distanceEst >= 1.0) {
