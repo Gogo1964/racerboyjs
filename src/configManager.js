@@ -32,7 +32,7 @@ class ConfigManager {
       heatDurationSec: 10,
       penaltyDurationSec: 3,
       trackLengthMeters: 25.5,
-      distanceCalculationMode: "average", // or "last-lap"
+      distanceCalculationMode: "average", // or "last-lap" or "final-lap"
       lane1: { name: "Driver 1", powerLevel: 100, color: "green", pins: { sensor: 17, power_fwd: 27, power_bwd: 22 } },
       lane2: { name: "Driver 2", powerLevel: 100, color: "blue", pins: { sensor: 18, power_fwd: 24, power_bwd: 23 } },
       lane3: { name: "Driver 3", powerLevel: 100, color: "red" },

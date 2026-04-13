@@ -539,9 +539,13 @@ class RaceEngine extends EventEmitter {
         const T = this.heatEndTimeMs - laneObj.lastSensorTick;
         if (T > 0 && L > 0) {
           let referenceTime = laneObj.averageLapTimeMs;
-          if (this.config.distanceCalculationMode === 'last-lap' || referenceTime === 0) {
+          
+          if (this.config.distanceCalculationMode === 'last-lap' && laneObj.lastLapTimeMs > 0) {
+            referenceTime = laneObj.lastLapTimeMs;
+          } else if (this.config.distanceCalculationMode === 'final-lap' || referenceTime === 0) {
             referenceTime = L;
           }
+          
           if (referenceTime > 0) {
             let fraction = T / referenceTime;
             if (fraction > 1.0) fraction = 1.0;

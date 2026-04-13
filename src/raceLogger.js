@@ -40,7 +40,12 @@ class RaceLogger {
     header += `Started: ${dateStr} (UTC)\n`;
     header += `Heats Count: ${config.heats || 4}\n`;
     header += `Heat Duration: ${config.heatDurationSec} sec\n`;
-    header += `Distance Mode: ${config.distanceCalculationMode === 'last-lap' ? 'Last Lap Time' : 'Average Lap Time'}\n`;
+    
+    let modeText = 'Average Lap Time';
+    if (config.distanceCalculationMode === 'last-lap') modeText = 'Last Complete Lap Time';
+    if (config.distanceCalculationMode === 'final-lap') modeText = 'Final Coast-down Lap Time';
+    header += `Distance Mode: ${modeText}\n`;
+    
     header += `----------------------------------------------------\n`;
     
     if (lanesState) {
