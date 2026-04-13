@@ -133,6 +133,7 @@ class RaceEngine extends EventEmitter {
       lane.bestLaps = [];
       lane.lastSensorTick = 0;
       lane.penaltyUntil = 0;
+      lane.penaltyClearedAt = 0;
       lane.isWinner = false;
       lane.isCrashed = false;
     });
@@ -333,6 +334,7 @@ class RaceEngine extends EventEmitter {
     // Check penalties (mostly relevant in running, but harmless here)
     Object.values(this.state.lanes).forEach(lane => {
       if (lane.penaltyUntil > 0 && lane.penaltyUntil <= now) {
+        lane.penaltyClearedAt = lane.penaltyUntil;
         lane.penaltyUntil = 0;
         this.hardware.setLanePower(lane.hwId, true);
       }
@@ -494,6 +496,11 @@ class RaceEngine extends EventEmitter {
       if (laneObj.penaltyUntil <= nowMs) {
           // Set to infinity basically, so it blocks them until beginHeat() trims it back to reality
           laneObj.penaltyUntil = nowMs + 1000000;
+          
+          // Seed the timer natively so the start-line cross isn't discarded when they finally lap
+          // This ensures that when they cross the finish line later, it accurately counts as Lap 1!
+          laneObj.lastSensorTick = nowMs;
+          
           raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
           this.hardware.setLanePower(laneId, false);
           this.emit('penalty', { laneId });
@@ -502,9 +509,16 @@ class RaceEngine extends EventEmitter {
       return;
     }
 
-    if (this.state.mode === 'race' && laneObj.penaltyUntil > nowMs) {
-      // Ignore sensor hits while the car is completely dead due to penalty
-      return;
+    if (this.state.mode === 'race') {
+        if (laneObj.penaltyUntil > nowMs) {
+          // Ignore sensor hits while the car is completely dead due to penalty
+          return;
+        }
+        if (laneObj.penaltyClearedAt && nowMs < laneObj.penaltyClearedAt + 1500) {
+          // 1.5s blind-spot post-penalty! This perfectly swallows any acceleration jitter
+          // caused by the guide flag dragging over the sensor as they leave the start line.
+          return;
+        }
     }
 
     // Heat is over, cars are returning to start line
