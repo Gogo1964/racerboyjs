@@ -133,6 +133,7 @@ class RaceEngine extends EventEmitter {
       lane.bestLaps = [];
       lane.lastSensorTick = 0;
       lane.penaltyUntil = 0;
+      lane.ignoreSensorUntil = 0;
       lane.isWinner = false;
       lane.isCrashed = false;
     });
@@ -335,6 +336,8 @@ class RaceEngine extends EventEmitter {
       if (lane.penaltyUntil > 0 && lane.penaltyUntil <= now) {
         lane.penaltyUntil = 0;
         this.hardware.setLanePower(lane.hwId, true);
+        // Ignore any flickering of the sensor for 1 second after switching on the lane power
+        lane.ignoreSensorUntil = now + 1000;
       }
     });
 
@@ -488,12 +491,19 @@ class RaceEngine extends EventEmitter {
       raceLogger.logEvent(`ATT: Hardware Sensor Triggered - Lane ${laneId} (${laneObj.name})`);
     }
 
+    if (laneObj.ignoreSensorUntil && nowMs < laneObj.ignoreSensorUntil) {
+       return;
+    }
+
     // False start check during 'starting'
     if (this.state.mode === 'race' && this.state.status === 'starting') {
       // PENALTY!
       if (laneObj.penaltyUntil <= nowMs) {
-          // Set to infinity basically, so it blocks them until beginHeat() trims it back to reality
-          laneObj.penaltyUntil = nowMs + 1000000;
+          laneObj.penaltyUntil = nowMs + 1000000; // prevent log spam
+          
+          // treat this false start as the first pass, so the next pass will be counted
+          laneObj.lastSensorTick = nowMs;
+          
           raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
           this.hardware.setLanePower(laneId, false);
           this.emit('penalty', { laneId });
