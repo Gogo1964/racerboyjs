@@ -1,0 +1,11 @@
+====================================================
+                 RACE PROTOCOL
+Started: 2026-04-13 15:29:15 (UTC)
+Heats Count: 4
+Heat Duration: 10 sec
+Distance Mode: Last Complete Lap Time
+----------------------------------------------------
+Lane 1: Gogo
+Lane 2: Petra
+====================================================
+

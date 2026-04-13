@@ -4,10 +4,10 @@
   "heats": 4,
   "heatDurationSec": 10,
   "penaltyDurationSec": 2,
-  "trackLengthMeters": 25.5,
-  "distanceCalculationMode": "average",
+  "trackLengthMeters": 16.4,
+  "distanceCalculationMode": "last-lap",
   "lane1": {
-    "name": "Driver 1",
+    "name": "Gogo",
     "powerLevel": 100,
     "color": "green",
     "pins": {
@@ -17,7 +17,7 @@
     }
   },
   "lane2": {
-    "name": "Driver 2",
+    "name": "Petra",
     "powerLevel": 100,
     "color": "blue",
     "pins": {
@@ -25,5 +25,6 @@
       "power_fwd": 24,
       "power_bwd": 23
     }
-  }
+  },
+  "verboseRaceLog": false
 }
