@@ -49,6 +49,10 @@
                             <label>False Start Penalty (Seconds)</label>
                             <input type="number" id="penaltyDurationSec" name="penaltyDurationSec" min="0">
                         </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                            <input type="checkbox" id="verboseRaceLog" name="verboseRaceLog" style="width: auto;">
+                            <label style="margin: 0; cursor: pointer;" for="verboseRaceLog">Verbose race log (Include TRACE)</label>
+                        </div>
                     </div>
                 </div>
 
@@ -124,6 +128,7 @@
                     document.getElementById('heats').value = cfg.heats || 4;
                     document.getElementById('heatDurationSec').value = cfg.heatDurationSec || 180;
                     document.getElementById('penaltyDurationSec').value = cfg.penaltyDurationSec || 3;
+                    document.getElementById('verboseRaceLog').checked = !!cfg.verboseRaceLog;
                     document.getElementById('trackLengthMeters').value = cfg.trackLengthMeters || 25.5;
                     document.getElementById('distanceCalculationMode').value = cfg.distanceCalculationMode || 'average';
                     document.getElementById('minLapTimeMs').value = cfg.minLapTimeMs || 1000;
@@ -146,6 +151,7 @@
                     heats: parseInt(document.getElementById('heats').value, 10),
                     heatDurationSec: parseInt(document.getElementById('heatDurationSec').value, 10),
                     penaltyDurationSec: parseInt(document.getElementById('penaltyDurationSec').value, 10),
+                    verboseRaceLog: document.getElementById('verboseRaceLog').checked,
                     trackLengthMeters: parseFloat(document.getElementById('trackLengthMeters').value),
                     distanceCalculationMode: document.getElementById('distanceCalculationMode').value,
                     minLapTimeMs: parseInt(document.getElementById('minLapTimeMs').value, 10),

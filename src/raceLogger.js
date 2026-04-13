@@ -8,6 +8,7 @@ class RaceLogger {
       fs.mkdirSync(this.dataDir, { recursive: true });
     }
     this.activeLogFile = null;
+    this.currentRaceConfig = null;
   }
 
   getNextLogFile() {
@@ -30,6 +31,7 @@ class RaceLogger {
   }
 
   startRace(config, lanesState) {
+    this.currentRaceConfig = config;
     this.activeLogFile = this.getNextLogFile();
     
     const d = new Date();
@@ -60,6 +62,12 @@ class RaceLogger {
 
   logEvent(message) {
     if (!this.activeLogFile) return;
+    
+    // Filter out low-level hardware traces if verbose logging is explicitly disabled
+    if (message.startsWith('TRACE:') && (!this.currentRaceConfig || !this.currentRaceConfig.verboseRaceLog)) {
+        return;
+    }
+    
     const d = new Date();
     const ts = d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0');
     fs.appendFileSync(this.activeLogFile, `[${ts}] ${message}\n`);
