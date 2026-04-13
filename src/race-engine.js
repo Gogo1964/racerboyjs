@@ -488,7 +488,7 @@ class RaceEngine extends EventEmitter {
     if (!laneObj) return;
 
     if (this.state.mode === 'race') {
-      raceLogger.logEvent(`ATT: Hardware Sensor Triggered - Lane ${laneId} (${laneObj.name})`);
+      raceLogger.logEvent(`TRACE: Hardware Sensor Triggered - Lane ${laneId} (${laneObj.name})`);
     }
 
     if (laneObj.ignoreSensorUntil && nowMs < laneObj.ignoreSensorUntil) {
