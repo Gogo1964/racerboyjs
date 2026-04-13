@@ -70,7 +70,8 @@ class RaceLogger {
     }
     
     const d = new Date();
-    const ts = d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0');
+    const msStr = ('000' + d.getMilliseconds()).slice(-3);
+    const ts = d.toTimeString().split(' ')[0] + '.' + msStr;
     fs.appendFileSync(this.activeLogFile, `[${ts}] ${message}\n`);
   }
 }

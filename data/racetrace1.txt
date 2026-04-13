@@ -1,6 +1,6 @@
 ====================================================
                  RACE PROTOCOL
-Started: 2026-04-13 15:29:15 (UTC)
+Started: 2026-04-13 19:43:57 (UTC)
 Heats Count: 4
 Heat Duration: 10 sec
 Distance Mode: Last Complete Lap Time
@@ -9,3 +9,19 @@ Lane 1: Gogo
 Lane 2: Petra
 ====================================================
 
+[21:43:57.407] --- RACE PROTOCOL STARTED ---
+[21:44:02.428] --- Heat 1 Started ---
+[21:44:08.650] Lane 1 (Gogo) was marked CRASHED.
+[21:44:10.378] Lane 2 (Petra) was marked CRASHED.
+[21:44:10.384] Heat Time Over! Waiting for cars to coast to finish line...
+[21:44:10.400] Heat 1 Completed. Current Laps: Lane 1 (Gogo): 0.00 | Lane 2 (Petra): 0.00
+[21:44:21.289] --- Heat 2 Started ---
+[21:44:23.950] Lap Recorded - Lane 1 (Petra): Lap 1 | Time: 1.363s | Avg: 1.363s
+[21:44:25.526] Lap Recorded - Lane 1 (Petra): Lap 2 | Time: 1.575s | Avg: 1.469s
+[21:44:27.140] Lap Recorded - Lane 1 (Petra): Lap 3 | Time: 1.614s | Avg: 1.517s
+[21:44:31.014] Lap Recorded - Lane 2 (Gogo): Lap 1 | Time: 2.159s | Avg: 2.159s
+[21:44:31.387] Heat Time Over! Waiting for cars to coast to finish line...
+[21:44:32.907] Lane 2 (Gogo) finished the heat.
+[21:44:38.994] Lane 2 (Gogo) was marked CRASHED.
+[21:44:40.324] Lane 1 (Petra) was marked CRASHED.
+[21:44:40.326] Heat 2 Completed. Current Laps: Lane 1 (Petra): 3.00 | Lane 2 (Gogo): 1.17
