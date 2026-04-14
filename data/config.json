@@ -5,7 +5,7 @@
   "heatDurationSec": 10,
   "penaltyDurationSec": 2,
   "trackLengthMeters": 16.4,
-  "distanceCalculationMode": "last-lap",
+  "distanceCalculationMode": "average",
   "lane1": {
     "name": "Gogo",
     "powerLevel": 100,

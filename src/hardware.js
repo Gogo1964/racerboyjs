@@ -40,7 +40,7 @@ class Hardware extends EventEmitter {
     // Initialize actual hardware if available
     this.hardwareState = {};
     this.emiDebounceUntil = 0;
-    
+
     if (pigpioEnabled) {
       this.initHardware();
     }
@@ -64,8 +64,8 @@ class Hardware extends EventEmitter {
       // Hardware interrupt callback
       sensor.on('interrupt', (level, tick) => {
         if (Date.now() < this.emiDebounceUntil) {
-           // Ignore electromagnetic interference spikes from relay switching
-           return;
+          // Ignore electromagnetic interference spikes from relay switching
+          return;
         }
         // debounce/jitter will be handled in race logic, just emit raw event here
         this.emit('lapSensorTriggered', { laneId: lane.id, tick });
@@ -74,15 +74,15 @@ class Hardware extends EventEmitter {
       // Forward Power Relay
       let powerFwd = null;
       if (lane.powerFwdPin) {
-          powerFwd = new Gpio(lane.powerFwdPin, { mode: Gpio.OUTPUT });
-          powerFwd.digitalWrite(0);
+        powerFwd = new Gpio(lane.powerFwdPin, { mode: Gpio.OUTPUT });
+        powerFwd.digitalWrite(0);
       }
 
       // Backward Power Relay
       let powerBwd = null;
       if (lane.powerBwdPin) {
-          powerBwd = new Gpio(lane.powerBwdPin, { mode: Gpio.OUTPUT });
-          powerBwd.digitalWrite(0);
+        powerBwd = new Gpio(lane.powerBwdPin, { mode: Gpio.OUTPUT });
+        powerBwd.digitalWrite(0);
       }
 
       // PWM for speed (Optional)
@@ -103,21 +103,21 @@ class Hardware extends EventEmitter {
     if (!lane) return;
 
     if (lane.isPowerOn !== isOn) {
-        this.emiDebounceUntil = Date.now() + 200;
+      this.emiDebounceUntil = Date.now() + 0; // was + 200, now disabled
     }
-    
+
     lane.isPowerOn = isOn;
 
     if (pigpioEnabled && this.hardwareState.lanes[laneId]) {
       const state = this.hardwareState.lanes[laneId];
       if (isOn) {
-         // Power ON = FWD on, BWD off
-         if (state.powerFwd) state.powerFwd.digitalWrite(1);
-         if (state.powerBwd) state.powerBwd.digitalWrite(0);
+        // Power ON = FWD on, BWD off
+        if (state.powerFwd) state.powerFwd.digitalWrite(1);
+        if (state.powerBwd) state.powerBwd.digitalWrite(0);
       } else {
-         // Power OFF = FWD off, BWD off
-         if (state.powerFwd) state.powerFwd.digitalWrite(0);
-         if (state.powerBwd) state.powerBwd.digitalWrite(0);
+        // Power OFF = FWD off, BWD off
+        if (state.powerFwd) state.powerFwd.digitalWrite(0);
+        if (state.powerBwd) state.powerBwd.digitalWrite(0);
       }
     } else {
       console.log(`[MOCK] Lane ${laneId} Power -> ${isOn ? 'ON' : 'OFF'}`);

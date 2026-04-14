@@ -1,6 +1,6 @@
 ====================================================
                  RACE PROTOCOL
-Started: 2026-04-13 15:32:44 (UTC)
+Started: 2026-04-14 10:11:32 (UTC)
 Heats Count: 4
 Heat Duration: 10 sec
 Distance Mode: Last Complete Lap Time
@@ -9,3 +9,52 @@ Lane 1: Gogo
 Lane 2: Petra
 ====================================================
 
+[12:11:32.734] --- RACE PROTOCOL STARTED ---
+[12:11:37.757] --- Heat 1 Started ---
+[12:11:42.362] Lap Recorded - Lane 1 (Gogo): Lap 1 | Time: 2.108s | Avg: 2.108s
+[12:11:44.290] Lap Recorded - Lane 1 (Gogo): Lap 2 | Time: 1.928s | Avg: 2.018s
+[12:11:47.783] Heat Time Over! Waiting for cars to coast to finish line...
+[12:11:49.245] Lane 1 (Gogo) finished the heat.
+[12:11:49.249] Heat 1 Completed. Current Laps: Lane 1 (Gogo): 3.81 | Lane 2 (Petra): 0.00
+[12:12:15.468] --- Heat 2 Started ---
+[12:12:19.243] Lap Recorded - Lane 1 (Petra): Lap 1 | Time: 1.880s | Avg: 1.880s
+[12:12:21.154] Lap Recorded - Lane 1 (Petra): Lap 2 | Time: 1.911s | Avg: 1.895s
+[12:12:25.536] Heat Time Over! Waiting for cars to coast to finish line...
+[12:12:27.139] Lane 1 (Petra) finished the heat.
+[12:12:27.142] Heat 2 Completed. Current Laps: Lane 1 (Petra): 4.29 | Lane 2 (Gogo): 3.81
+[12:12:51.273] --- Heat 3 Started ---
+[12:12:56.572] Lap Recorded - Lane 1 (Gogo): Lap 4 | Time: 2.396s | Avg: 2.144s
+[12:12:59.366] Lap Recorded - Lane 1 (Gogo): Lap 5 | Time: 2.795s | Avg: 2.307s
+[12:13:01.325] Heat Time Over! Waiting for cars to coast to finish line...
+[12:13:03.054] Lane 1 (Gogo) finished the heat.
+[12:13:03.055] Heat 3 Completed. Current Laps: Lane 1 (Gogo): 6.51 | Lane 2 (Petra): 4.29
+[12:13:33.890] --- Heat 4 Started ---
+[12:13:38.987] Lap Recorded - Lane 2 (Gogo): Lap 7 | Time: 1.928s | Avg: 2.231s
+[12:13:40.283] Lap Recorded - Lane 1 (Petra): Lap 5 | Time: 5.303s | Avg: 3.031s
+[12:13:42.446] Lap Recorded - Lane 1 (Petra): Lap 6 | Time: 2.163s | Avg: 2.814s
+[12:13:43.964] Heat Time Over! Waiting for cars to coast to finish line...
+[12:13:44.738] Lane 2 (Gogo) finished the heat.
+[12:13:46.486] Lane 1 (Petra) finished the heat.
+[12:13:46.488] Heat 4 Completed. Current Laps: Lane 1 (Petra): 6.99 | Lane 2 (Gogo): 10.09
+[12:13:46.490] ALL HEATS COMPLETED. Race Finished!
+[12:13:46.496] 
+====================================================
+                 RACE SUMMARY
+----------------------------------------------------
+Total Heats: 4
+Total Race Duration: 133.8 sec
+
+Final Standings:
+  1. Gogo (Lane 2)
+     Total Laps: 10.09
+     Best Lap: 1.928s
+     Avg Lap: 2.231s
+
+  2. Petra (Lane 1)
+     Total Laps: 6.99
+     Best Lap: 1.880s
+     Avg Lap: 2.814s
+
+WINNER: Gogo!!!
+====================================================
+[12:33:06.544] Race Manually Stopped/Cancelled.
