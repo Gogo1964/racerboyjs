@@ -18,9 +18,9 @@ class RaceEngine extends EventEmitter {
       lanes: {}
     };
 
-    this.driverNames = { 
-        1: this.config.lane1 ? this.config.lane1.name : "Driver 1", 
-        2: this.config.lane2 ? this.config.lane2.name : "Driver 2" 
+    this.driverNames = {
+      1: this.config.lane1 ? this.config.lane1.name : "Driver 1",
+      2: this.config.lane2 ? this.config.lane2.name : "Driver 2"
     };
 
     this.initLanes();
@@ -225,7 +225,7 @@ class RaceEngine extends EventEmitter {
     }
 
     if (this.state.mode === 'race' && this.state.status !== 'stopped') {
-       raceLogger.logEvent(`Race Manually Stopped/Cancelled.`);
+      raceLogger.logEvent(`Race Manually Stopped/Cancelled.`);
     }
 
     this.state.status = 'stopped';
@@ -301,13 +301,13 @@ class RaceEngine extends EventEmitter {
     const now = Date.now();
     Object.values(this.state.lanes).forEach(lane => {
       lane.isCrashed = false;
-      
+
       if (lane.penaltyUntil > now) {
-          // If they false-started during countdown, start the penalty officially NOW
-          lane.penaltyUntil = now + (this.config.penaltyDurationSec * 1000);
+        // If they false-started during countdown, start the penalty officially NOW
+        lane.penaltyUntil = now + (this.config.penaltyDurationSec * 1000);
       } else {
-          // No penalty, give them power immediately
-          this.hardware.setLanePower(lane.hwId, true);
+        // No penalty, give them power immediately
+        this.hardware.setLanePower(lane.hwId, true);
       }
     });
 
@@ -370,7 +370,8 @@ class RaceEngine extends EventEmitter {
   }
 
   checkAllLanesFinished() {
-    const allFinished = Object.values(this.state.lanes).every(l => this.finishedLanes.has(l.hwId) || l.isCrashed);
+    // either already finished, crashed or sensor not triggered, which implies that car broke at start
+    const allFinished = Object.values(this.state.lanes).every(l => this.finishedLanes.has(l.hwId) || l.isCrashed || l.lastSensorTick === 0);
     if (allFinished) {
       this.completeHeat();
     }
@@ -378,7 +379,7 @@ class RaceEngine extends EventEmitter {
 
   completeHeat() {
     this.stopTicker();
-    
+
     this.hardware.playSound('fanfareHeatFinished');
 
     raceLogger.logEvent(`Heat ${this.state.currentHeat} Completed. Current Laps: ` + Object.values(this.state.lanes).map(l => `Lane ${l.hwId} (${l.name}): ${(l.laps + (l.distanceEst || 0)).toFixed(2)}`).join(' | '));
@@ -421,32 +422,32 @@ class RaceEngine extends EventEmitter {
     });
 
     const winnerLane = Object.values(this.state.lanes).find(l => l.hwId === winnerId);
-    
+
     let summary = `\n====================================================\n`;
     summary += `                 RACE SUMMARY\n`;
     summary += `----------------------------------------------------\n`;
     summary += `Total Heats: ${this.state.totalHeats}\n`;
     if (this.raceStartTimeMs) {
-        const durSec = ((Date.now() - this.raceStartTimeMs) / 1000).toFixed(1);
-        summary += `Total Race Duration: ${durSec} sec\n`;
+      const durSec = ((Date.now() - this.raceStartTimeMs) / 1000).toFixed(1);
+      summary += `Total Race Duration: ${durSec} sec\n`;
     }
     summary += `\nFinal Standings:\n`;
-    
+
     const sortedLanes = Object.values(this.state.lanes).sort((a, b) => (b.laps + (b.distanceEst || 0)) - (a.laps + (a.distanceEst || 0)));
-    
+
     sortedLanes.forEach((l, idx) => {
-        const score = (l.laps + (l.distanceEst || 0)).toFixed(2);
-        summary += `  ${idx + 1}. ${l.name} (Lane ${l.hwId})\n`;
-        summary += `     Total Laps: ${score}\n`;
-        summary += `     Best Lap: ${l.bestLapTimeMs === Infinity ? 'N/A' : (l.bestLapTimeMs/1000).toFixed(3) + 's'}\n`;
-        summary += `     Avg Lap: ${l.averageLapTimeMs === 0 ? 'N/A' : (l.averageLapTimeMs/1000).toFixed(3) + 's'}\n\n`;
+      const score = (l.laps + (l.distanceEst || 0)).toFixed(2);
+      summary += `  ${idx + 1}. ${l.name} (Lane ${l.hwId})\n`;
+      summary += `     Total Laps: ${score}\n`;
+      summary += `     Best Lap: ${l.bestLapTimeMs === Infinity ? 'N/A' : (l.bestLapTimeMs / 1000).toFixed(3) + 's'}\n`;
+      summary += `     Avg Lap: ${l.averageLapTimeMs === 0 ? 'N/A' : (l.averageLapTimeMs / 1000).toFixed(3) + 's'}\n\n`;
     });
-    
+
     if (winnerLane) {
-        summary += `WINNER: ${winnerLane.name}!!!\n`;
+      summary += `WINNER: ${winnerLane.name}!!!\n`;
     }
     summary += `====================================================`;
-    
+
     raceLogger.logEvent(summary);
 
     if (winnerId !== null) {
@@ -499,22 +500,22 @@ class RaceEngine extends EventEmitter {
     }
 
     if (laneObj.ignoreSensorUntil && nowMs < laneObj.ignoreSensorUntil) {
-       return;
+      return;
     }
 
     // False start check during 'starting'
     if (this.state.mode === 'race' && this.state.status === 'starting') {
       // PENALTY!
       if (laneObj.penaltyUntil <= nowMs) {
-          laneObj.penaltyUntil = nowMs + 1000000; // prevent log spam
-          
-          // treat this false start as the first pass, so the next pass will be counted
-          laneObj.lastSensorTick = nowMs;
-          
-          raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
-          this.hardware.setLanePower(laneId, false);
-          this.emit('penalty', { laneId });
-          this.emitStateChanged();
+        laneObj.penaltyUntil = nowMs + 1000000; // prevent log spam
+
+        // treat this false start as the first pass, so the next pass will be counted
+        laneObj.lastSensorTick = nowMs;
+
+        raceLogger.logEvent(`PENALTY! Lane ${laneId} (${laneObj.name}) false started.`);
+        this.hardware.setLanePower(laneId, false);
+        this.emit('penalty', { laneId });
+        this.emitStateChanged();
       }
       return;
     }
@@ -546,13 +547,13 @@ class RaceEngine extends EventEmitter {
         const T = this.heatEndTimeMs - laneObj.lastSensorTick;
         if (T > 0 && L > 0) {
           let referenceTime = laneObj.averageLapTimeMs;
-          
+
           if (this.config.distanceCalculationMode === 'last-lap' && laneObj.lastLapTimeMs > 0) {
             referenceTime = laneObj.lastLapTimeMs;
           } else if (this.config.distanceCalculationMode === 'final-lap' || referenceTime === 0) {
             referenceTime = L;
           }
-          
+
           if (referenceTime > 0) {
             let fraction = T / referenceTime;
             laneObj.distanceEst += fraction;
@@ -615,7 +616,7 @@ class RaceEngine extends EventEmitter {
     }
 
     if (this.state.mode === 'race') {
-      raceLogger.logEvent(`Lap Recorded - Lane ${laneId} (${laneObj.name}): Lap ${laneObj.laps} | Time: ${(lapTimeMs/1000).toFixed(3)}s | Avg: ${(laneObj.averageLapTimeMs/1000).toFixed(3)}s`);
+      raceLogger.logEvent(`Lap Recorded - Lane ${laneId} (${laneObj.name}): Lap ${laneObj.laps} | Time: ${(lapTimeMs / 1000).toFixed(3)}s | Avg: ${(laneObj.averageLapTimeMs / 1000).toFixed(3)}s`);
     }
 
     this.emit('lapRecorded', { laneId, lapTimeMs, isPb });
